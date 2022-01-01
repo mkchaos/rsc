@@ -101,7 +101,6 @@ fn get_name(word: &str) -> Option<Token> {
     Some(Token::Name(word.to_owned()))
 }
 
-#[allow(dead_code)]
 pub fn get_token_from_word(word: &str) -> Option<Token> {
     for it in RESERVED_KEYWORDS.iter() {
         if it.0 == word {
@@ -117,7 +116,6 @@ pub fn get_token_from_word(word: &str) -> Option<Token> {
     }
 }
 
-#[allow(dead_code)]
 pub fn get_token_from_char(ch: char) -> Option<Token> {
     for it in RESERVED_SINGLE_CHAR_TOKENS.iter() {
         if it.0 == ch {
