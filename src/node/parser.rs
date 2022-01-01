@@ -6,7 +6,7 @@ pub enum ParseErr {
     NoToken,
 }
 
-pub struct Seq<T>(SeqSlice, T);
+pub struct Seq<T>(pub SeqSlice, pub T);
 
 pub trait Parser: Sized {
     fn parse(seq: &SeqSlice) -> Result<Seq<Self>, ParseErr>;
@@ -25,14 +25,15 @@ impl Parser for FactorNd {
 impl Parser for TermNd {
     fn parse(seq: &SeqSlice) -> Result<Seq<Self>, ParseErr> {
         let Seq(s, a) = FactorNd::parse(seq)?;
-        match s.get(0) {
+        let t = s.get(0);
+        match t {
             Some(&Token::Multiply) | Some(&Token::Divide) | Some(&Token::Modulo) => {
-                let Seq(s, b) = TermNd::parse(&s)?;
+                let Seq(s, b) = TermNd::parse(&s.advance(1))?;
                 Ok(Seq(
                     s,
                     TermNd {
                         a: Box::new(a),
-                        b: Some(Box::new(b)),
+                        b: Some((Box::new(b), t.unwrap().clone())),
                     },
                 ))
             }
@@ -50,14 +51,15 @@ impl Parser for TermNd {
 impl Parser for ExprNd {
     fn parse(seq: &SeqSlice) -> Result<Seq<Self>, ParseErr> {
         let Seq(s, a) = TermNd::parse(seq)?;
-        match s.get(0) {
-            Some(&Token::Multiply) | Some(&Token::Divide) | Some(&Token::Modulo) => {
-                let Seq(s, b) = ExprNd::parse(&s)?;
+        let t = s.get(0);
+        match t {
+            Some(&Token::Add) | Some(&Token::Minus) => {
+                let Seq(s, b) = ExprNd::parse(&s.advance(1))?;
                 Ok(Seq(
                     s,
                     ExprNd {
                         a: Box::new(a),
-                        b: Some(Box::new(b)),
+                        b: Some((Box::new(b), t.unwrap().clone())),
                     },
                 ))
             }
