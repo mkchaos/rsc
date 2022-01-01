@@ -1,7 +1,8 @@
 mod seq;
 mod token;
 
-pub use seq::Seq;
+use seq::Seq;
+pub use seq::SeqSlice;
 use token::{get_token_from_char, get_token_from_word};
 pub use token::{Token, Type, Value};
 
@@ -9,7 +10,7 @@ pub use token::{Token, Type, Value};
 pub struct LexErr(String);
 
 #[allow(dead_code)]
-pub fn lexer(code: &str) -> Result<Seq, LexErr> {
+pub fn lexer(code: &str) -> Result<SeqSlice, LexErr> {
     let mut word: String = String::new();
     let mut seq = Seq::new();
     macro_rules! try_push_word {
@@ -35,7 +36,7 @@ pub fn lexer(code: &str) -> Result<Seq, LexErr> {
         }
     }
     try_push_word!();
-    Ok(seq)
+    Ok(SeqSlice::new(seq))
 }
 
 #[cfg(test)]
