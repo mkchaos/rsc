@@ -10,6 +10,8 @@ impl Doter for FactorNd {
         match self {
             FactorNd::Value(Value::Int(n)) => println!("{}[label=\"{}\"];", id, n),
             FactorNd::Value(Value::Bool(n)) => println!("{}[label=\"{}\"];", id, n),
+            FactorNd::Var(n) => println!("{}[label=\"{}\"];", id, n.name),
+            _=>{}
         }
         id
     }
@@ -47,19 +49,17 @@ impl Doter for ExprNd {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use super::super::parser::*;
-    use crate::token::lexer;
+    // use super::*;
+    // use super::super::parser::*;
+    // use crate::token::lexer;
 
     #[test]
     fn print_dot() {
-        let code = "1*2+3*5";
-        if let Ok(s) = lexer(code) {
-            if let Ok(Seq(_, n)) = ExprNd::parse(&s) {
-                n.dot(0);
-            }
-        }
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+        // let code = "1*2+3*5";
+        // if let Ok(s) = lexer(code) {
+        //     if let Ok(Seq(_, n)) = ExprNd::parse(&s) {
+        //         n.dot(0);
+        //     }
+        // }
     }
 }
