@@ -38,7 +38,7 @@ impl Parser for TermNd {
             let (seq, op) = sp?;
             let (seq, b) = TermNd::parse(seq)?;
             Some((
-                seq.advance(1),
+                seq,
                 TermNd {
                     a: Box::new(a),
                     b: Some((Box::new(b), op)),
@@ -46,7 +46,7 @@ impl Parser for TermNd {
             ))
         } else {
             Some((
-                seq.advance(1),
+                seq,
                 TermNd {
                     a: Box::new(a),
                     b: None,
@@ -64,7 +64,7 @@ impl Parser for ExprNd {
             let (seq, op) = sp?;
             let (seq, b) = ExprNd::parse(seq)?;
             Some((
-                seq.advance(1),
+                seq,
                 ExprNd {
                     a: Box::new(a),
                     b: Some((Box::new(b), op)),
@@ -72,7 +72,7 @@ impl Parser for ExprNd {
             ))
         } else {
             Some((
-                seq.advance(1),
+                seq,
                 ExprNd {
                     a: Box::new(a),
                     b: None,

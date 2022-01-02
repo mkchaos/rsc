@@ -53,7 +53,7 @@ impl Sequence {
     pub fn swtich_eat(&self, tks: &[Token]) -> SeqPack<Token> {
         for t in tks.iter() {
             if self.get(0) == Some(t.clone()) {
-                return Some((self.clone(), t.clone()));
+                return Some((self.advance(1), t.clone()));
             }
         }
         None

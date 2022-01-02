@@ -46,7 +46,8 @@ mod tests {
     fn test_lexer() {
         let code = "int foo() {}";
         match lexer(code) {
-            Ok(seq) => {
+            Ok(tks) => {
+                let seq = Sequence::new(tks);
                 assert_eq!(seq.get(0), Some(Token::Type(Type::Int)));
                 assert_eq!(seq.get(1), Some(Token::Name("foo".to_owned())));
                 assert_eq!(seq.get(2), Some(Token::LParen));
