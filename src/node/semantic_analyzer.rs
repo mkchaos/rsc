@@ -12,10 +12,10 @@ pub enum SemanticErr {
 #[allow(dead_code)]
 #[derive(Clone, Copy)]
 pub struct VarContext {
-    id: usize,
-    scope_id: usize,
-    mem_offset: usize,
-    ty: Type,
+    pub id: usize,
+    pub scope_id: usize,
+    pub mem_offset: usize,
+    pub ty: Type,
 }
 
 #[derive(Clone)]

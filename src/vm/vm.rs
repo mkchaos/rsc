@@ -21,7 +21,7 @@ impl VM {
             pc: 0,
             pd: 0,
             datas: vec![0; data_stack_size],
-            codes: vec![Instrument::Print; code_stack_size],
+            codes: vec![Instrument::Print(V::NoWhere); code_stack_size],
         }
     }
 
@@ -30,6 +30,7 @@ impl VM {
             V::Direct(a) => self.datas[a],
             V::Indirect(a) => self.datas[self.pd + a],
             V::Value(a) => a,
+            _ => 0,
         }
     }
 
@@ -38,6 +39,7 @@ impl VM {
             V::Direct(a) => self.datas[a] = v,
             V::Indirect(a) => self.datas[self.pd + a] = v,
             V::Value(_) => {}
+            _ => {}
         }
     }
 
@@ -61,7 +63,10 @@ impl VM {
                 }
                 self.setv(c, v);
             }
-            Instrument::Print => {}
+            Instrument::Print(a) => {
+                let a = self.getv(a);
+                println!("{}", a);
+            }
         }
     }
 }
