@@ -8,20 +8,20 @@ pub struct VM {
     datas: Vec<i32>,
 }
 
-pub enum RuntimeErr {
-    StackOverFlow,
-    DivideZero,
-    InvalidInstrument,
-}
+// pub enum RuntimeErr {
+//     StackOverFlow,
+//     DivideZero,
+//     InvalidInstrument,
+// }
 
 #[allow(dead_code)]
 impl VM {
-    pub fn new(data_stack_size: usize, code_stack_size: usize) -> Self {
+    pub fn new(data_stack_size: usize, prog: Program) -> Self {
         VM {
             pc: 0,
             pd: 0,
             datas: vec![0; data_stack_size],
-            codes: vec![Instrument::Print(V::NoWhere); code_stack_size],
+            codes: prog.inss,
         }
     }
 
@@ -49,7 +49,7 @@ impl VM {
             Instrument::Mov(a, b) => {
                 self.setv(a, self.getv(b));
             }
-            Instrument::Op(_t, _a, _b) => {}
+            // Instrument::Op(_t, _a, _b) => {}
             Instrument::BinOp(t, a, b, c) => {
                 let a = self.getv(a);
                 let b = self.getv(b);

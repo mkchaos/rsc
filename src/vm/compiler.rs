@@ -1,5 +1,5 @@
 use crate::node::node::*;
-use crate::node::semantic_analyzer::VarContext;
+use crate::node::semantic_analyzer::{Context, VarContext};
 use crate::token::{Token, Value};
 
 use std::collections::HashMap;
@@ -15,13 +15,13 @@ pub enum V {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Instrument {
     Mov(V, V),
-    Op(Token, V, V),
+    // Op(Token, V, V),
     BinOp(Token, V, V, V),
     Print(V),
 }
 
 pub struct Program {
-    inss: Vec<Instrument>,
+    pub inss: Vec<Instrument>,
     vars: HashMap<usize, VarContext>,
     mem_offset: usize,
     global: bool,
@@ -29,10 +29,10 @@ pub struct Program {
 }
 
 impl Program {
-    fn new() -> Self {
+    pub fn new(cxt: &Context) -> Self {
         Program {
             inss: Vec::new(),
-            vars: HashMap::new(),
+            vars: cxt.freeze(),
             mem_offset: 0,
             global: true,
             stack_off: 0,
@@ -40,10 +40,10 @@ impl Program {
     }
 
     fn update_offset(&mut self, var: &VarNd) {
-        let id = var.id.clone().into_inner();
+        let id = *var.id.borrow();
         let cxt = self.vars[&id];
         if var.declared() {
-            self.mem_offset = cxt.mem_offset;
+            self.mem_offset = cxt.mem_offset + 1;
         }
     }
 
@@ -52,8 +52,9 @@ impl Program {
     }
 
     fn get_v_from_var(&self, var: &VarNd) -> V {
-        let id = var.id.clone().into_inner();
+        let id = *var.id.borrow();
         let cxt = self.vars[&id];
+        println!("get {} {:?} {:?}", id, var, cxt);
         if cxt.scope_id == 0 {
             V::Direct(cxt.mem_offset)
         } else {
@@ -71,6 +72,7 @@ impl Program {
 
     fn push(&mut self, v: Value) -> V {
         let off = self.mem_offset + self.stack_off;
+        self.stack_off += 1;
         let mem_v = match v {
             Value::Int(v) => v,
             Value::Bool(v) => {
@@ -86,6 +88,15 @@ impl Program {
         v
     }
 
+    fn push_var(&mut self, var_v: V) -> V {
+        println!("pushvar {:?}", var_v);
+        let off = self.mem_offset + self.stack_off;
+        self.stack_off += 1;
+        let v = self.get_v_from_off(off);
+        self.inss.push(Instrument::Mov(v, var_v));
+        v
+    }
+
     fn pop(&mut self, v: V) -> V {
         self.stack_off -= 1;
         let off = self.mem_offset + self.stack_off;
@@ -94,8 +105,8 @@ impl Program {
     }
 
     fn bin_op(&mut self, op: Token) -> V {
-        let v2 = self.get_v_from_off(self.stack_off - 1);
-        let v1 = self.get_v_from_off(self.stack_off - 2);
+        let v2 = self.get_v_from_off(self.mem_offset + self.stack_off - 1);
+        let v1 = self.get_v_from_off(self.mem_offset + self.stack_off - 2);
         self.inss.push(Instrument::BinOp(op, v1, v2, v1));
         self.stack_off -= 1;
         v1
@@ -148,6 +159,7 @@ impl Compiler for ExprNd {
     }
 }
 
+// No Push Here
 impl Compiler for VarNd {
     fn compile(&self, prog: &mut Program) -> V {
         let v = prog.get_v_from_var(self);
@@ -155,7 +167,7 @@ impl Compiler for VarNd {
             prog.update_offset(self);
             V::NoWhere
         } else {
-            v
+            prog.push_var(v)
         }
     }
 }

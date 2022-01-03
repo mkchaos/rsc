@@ -10,7 +10,7 @@ pub enum SemanticErr {
 }
 
 #[allow(dead_code)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct VarContext {
     pub id: usize,
     pub scope_id: usize,
@@ -60,6 +60,7 @@ impl ScopeContext {
     }
 }
 
+#[derive(Clone)]
 pub struct Context {
     cur_scope_id: usize,
     scope_stack: Vec<usize>,
@@ -80,6 +81,16 @@ impl Context {
             mem_cur: 0,
             scopes: scopes,
         }
+    }
+
+    pub fn freeze(&self) -> HashMap<usize, VarContext> {
+        let mut mp = HashMap::new();
+        for s in self.scopes.iter() {
+            for (_, v) in s.vars.iter() {
+                mp.insert(v.id, *v);
+            }
+        }
+        mp
     }
 
     pub fn enter_scope(&mut self) {
@@ -170,9 +181,11 @@ impl SemanticAnalyzer for VarNd {
         if self.declared() {
             let vcxt = cxt.declare(self)?;
             *self.id.borrow_mut() = vcxt.id;
+            println!("mem {:?}", vcxt.mem_offset);
             Ok(Type::Void)
         } else {
             let vc = cxt.fetch(self)?;
+            *self.id.borrow_mut() = vc.id;
             Ok(vc.ty)
         }
     }
@@ -188,7 +201,7 @@ impl SemanticAnalyzer for StmtNd {
             let vn = self.var.as_ref().unwrap();
             let final_ty = vn.analyze(cxt)?;
             let declare_vn = cxt.fetch(vn)?;
-            if ty != declare_vn.ty {
+            if self.expr.is_some() && ty != declare_vn.ty {
                 return Err(SemanticErr::MismatchType);
             }
             ty = final_ty;
