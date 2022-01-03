@@ -1,5 +1,6 @@
 mod token;
 mod node;
+mod vm;
 
 #[cfg(test)]
 mod tests {
