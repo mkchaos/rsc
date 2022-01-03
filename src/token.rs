@@ -3,7 +3,7 @@ mod token;
 
 pub use seq::{Sequence, SeqPack};
 use token::{get_token_from_char, get_token_from_word};
-pub use token::{Token, Type, Value};
+pub use token::{Token, Type, Value, get_value_type};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct LexErr(String);

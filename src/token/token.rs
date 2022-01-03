@@ -11,6 +11,13 @@ pub enum Type {
     Bool,
 }
 
+pub fn get_value_type(v: Value) -> Type {
+    match v {
+        Value::Int(_) => Type::Int,
+        Value::Bool(_) => Type::Bool,
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Single
