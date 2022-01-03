@@ -88,22 +88,10 @@ impl Parser for VarNd {
         if sp.is_some() {
             let (seq, ty) = sp?;
             let (seq, name) = seq.eat_name()?;
-            return Some((
-                seq,
-                VarNd {
-                    ty: Some(ty),
-                    name: name,
-                },
-            ));
+            return Some((seq, VarNd::new(Some(ty), name)));
         }
         let (seq, name) = seq.eat_name()?;
-        Some((
-            seq,
-            VarNd {
-                ty: None,
-                name: name,
-            },
-        ))
+        Some((seq, VarNd::new(None, name)))
     }
 }
 

@@ -168,7 +168,8 @@ impl SemanticAnalyzer for ExprNd {
 impl SemanticAnalyzer for VarNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, SemanticErr> {
         if self.declared() {
-            cxt.declare(self)?;
+            let vcxt = cxt.declare(self)?;
+            *self.id.borrow_mut() = vcxt.id;
             Ok(Type::Void)
         } else {
             let vc = cxt.fetch(self)?;

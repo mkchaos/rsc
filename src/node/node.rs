@@ -1,4 +1,5 @@
 use crate::token::{Token, Type, Value};
+use std::cell::RefCell;
 
 #[derive(Debug, Clone)]
 pub enum FactorNd {
@@ -23,9 +24,18 @@ pub struct ExprNd {
 pub struct VarNd {
     pub ty: Option<Type>,
     pub name: String,
+    pub id: RefCell<usize>,
 }
 
 impl VarNd {
+    pub fn new(ty: Option<Type>, name: String) -> Self {
+        VarNd {
+            ty: ty,
+            name: name,
+            id: RefCell::new(0),
+        }
+    }
+
     pub fn declared(&self) -> bool {
         self.ty.is_some()
     }
