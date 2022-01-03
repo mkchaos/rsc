@@ -9,6 +9,7 @@ mod tests {
     use crate::token::{lexer, Sequence};
     use crate::node::semantic_analyzer::*;
     use crate::vm::compiler::{Compiler, Program};
+    use crate::vm::vm::{VM};
     
     #[test]
     fn it_works() {
@@ -18,7 +19,7 @@ mod tests {
 
     #[test]
     fn test_pipeline() {
-        let code = "int a=1;int b=1;int c=a+b+1;c=a+b;c;";
+        let code = "int a=1;int b=2;int c=a+b+3;a;b;c;";
         if let Ok(s) = lexer(code) {
             let seq = Sequence::new(s);
             if let Some((_, n)) = RootNd::parse(seq) {
@@ -32,6 +33,8 @@ mod tests {
                         for ins in prog.inss.iter() {
                             println!("{:?}", ins);
                         }
+                        let mut vm = VM::new(100, prog);
+                        vm.execute();
                     }
                     Err(t) => {
                         println!("{:?}", t);

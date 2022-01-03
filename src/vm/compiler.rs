@@ -84,7 +84,7 @@ impl Program {
             }
         };
         let v = self.get_v_from_off(off);
-        self.inss.push(Instrument::Mov(v, V::Value(mem_v)));
+        self.inss.push(Instrument::Mov(V::Value(mem_v), v));
         v
     }
 
@@ -93,14 +93,14 @@ impl Program {
         let off = self.mem_offset + self.stack_off;
         self.stack_off += 1;
         let v = self.get_v_from_off(off);
-        self.inss.push(Instrument::Mov(v, var_v));
+        self.inss.push(Instrument::Mov(var_v, v));
         v
     }
 
     fn pop(&mut self, v: V) -> V {
         self.stack_off -= 1;
         let off = self.mem_offset + self.stack_off;
-        self.inss.push(Instrument::Mov(v, self.get_v_from_off(off)));
+        self.inss.push(Instrument::Mov(self.get_v_from_off(off), v));
         v
     }
 

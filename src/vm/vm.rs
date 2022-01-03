@@ -45,9 +45,10 @@ impl VM {
 
     pub fn execute_once(&mut self) {
         let ins = self.codes[self.pc].clone();
+        self.pc += 1;
         match ins {
             Instrument::Mov(a, b) => {
-                self.setv(a, self.getv(b));
+                self.setv(b, self.getv(a));
             }
             // Instrument::Op(_t, _a, _b) => {}
             Instrument::BinOp(t, a, b, c) => {
@@ -67,6 +68,12 @@ impl VM {
                 let a = self.getv(a);
                 println!("{}", a);
             }
+        }
+    }
+
+    pub fn execute(&mut self) {
+        while self.pc < self.codes.len() {
+            self.execute_once();
         }
     }
 }
