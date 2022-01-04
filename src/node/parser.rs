@@ -162,6 +162,9 @@ impl Parser for FuncHeadNd {
 impl Parser for FuncNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
         let (seq, head) = FuncHeadNd::parse(seq)?;
+        if !head.name.declared() {
+            return None;
+        }
         let (seq, block) = BlockNd::parse(seq)?;
         Some((
             seq,

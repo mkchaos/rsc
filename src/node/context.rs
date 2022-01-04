@@ -70,6 +70,7 @@ pub struct Context {
     scope_stack: Vec<usize>,
     cur_var_id: usize,
     mem_cur: usize,
+    func_offset: usize, 
     scopes: Vec<ScopeContext>,
 }
 
@@ -83,6 +84,7 @@ impl Context {
             scope_stack: Vec::new(),
             cur_var_id: 0,
             mem_cur: 0,
+            func_offset: 0,
             scopes: scopes,
         }
     }
@@ -97,16 +99,26 @@ impl Context {
         mp
     }
 
+    pub fn enter_func(&mut self) {
+        self.func_offset = self.mem_cur;
+        self.enter_scope();
+    }
+
+    pub fn exit_func(&mut self) {
+        self.exit_scope();
+        self.func_offset = 0;
+    }
+
     pub fn enter_scope(&mut self) {
         self.scope_stack.push(self.cur_scope_id);
         self.cur_scope_id = self.scopes.len();
         self.scopes
-            .push(ScopeContext::new(self.cur_scope_id, self.mem_cur));
+            .push(ScopeContext::new(self.cur_scope_id, self.mem_cur-self.func_offset));
     }
 
     pub fn exit_scope(&mut self) {
         self.cur_scope_id = self.scope_stack.pop().expect("scope parse error");
-        self.mem_cur = self.scopes[self.cur_scope_id].mem_offset;
+        self.mem_cur = self.scopes[self.cur_scope_id].mem_offset + self.func_offset;
     }
 
     pub fn declare(&mut self, var: &VarNd) -> Result<VarContext, SemanticErr> {

@@ -16,13 +16,16 @@ pub enum Instrument {
     // Op(Token, V, V),
     BinOp(Token, V, V, V),
     Print(V),
+    Ret,
+    Call,
 }
 
 pub struct Program {
     pub inss: Vec<Instrument>,
+    funcs: HashMap<String, usize>,
     vars: HashMap<usize, VarContext>,
     mem_offset: usize,
-    global: bool,
+    func_offset: usize,
     stack_off: usize,
 }
 
@@ -30,18 +33,40 @@ impl Program {
     pub fn new(cxt: &Context) -> Self {
         Program {
             inss: Vec::new(),
+            funcs: HashMap::new(),
             vars: cxt.freeze(),
             mem_offset: 0,
-            global: true,
+            func_offset: 0,
             stack_off: 0,
         }
+    }
+
+    fn in_func(&self) -> bool {
+        self.func_offset != 0
+    }
+
+    pub fn enter_func(&mut self, name: &str) {
+        self.func_offset = self.mem_offset;
+        self.funcs.insert(name.to_owned(), self.func_offset);
+    }
+
+    pub fn exit_func(&mut self) {
+        self.func_offset = 0;
+    }
+
+    pub fn main_entry(&self) -> usize {
+        self.funcs["main"]
+    }
+
+    pub fn ret(&mut self) {
+        self.inss.push(Instrument::Ret);
     }
 
     pub fn update_offset(&mut self, var: &VarNd) {
         let id = *var.id.borrow();
         let cxt = self.vars[&id];
         if var.declared() {
-            self.mem_offset = cxt.mem_offset + 1;
+            self.mem_offset = cxt.mem_offset + self.func_offset  + 1;
         }
     }
 
@@ -60,15 +85,19 @@ impl Program {
     }
 
     pub fn get_v_from_off(&self, off: usize) -> V {
-        if self.global {
-            V::Direct(off)
-        } else {
+        if self.in_func() {
             V::Indirect(off)
+        } else {
+            V::Direct(off)
         }
     }
 
+    pub fn get_cur_off(&self) -> usize {
+        self.mem_offset + self.stack_off - self.func_offset
+    }
+
     pub fn push_value(&mut self, v: Value) -> V {
-        let off = self.mem_offset + self.stack_off;
+        let off = self.get_cur_off();
         self.stack_off += 1;
         let mem_v = match v {
             Value::Int(v) => v,
@@ -86,7 +115,7 @@ impl Program {
     }
 
     pub fn push_var(&mut self, var_v: V) -> V {
-        let off = self.mem_offset + self.stack_off;
+        let off = self.get_cur_off();
         self.stack_off += 1;
         let v = self.get_v_from_off(off);
         self.inss.push(Instrument::Mov(var_v, v));
@@ -95,14 +124,15 @@ impl Program {
 
     pub fn pop(&mut self, v: V) -> V {
         self.stack_off -= 1;
-        let off = self.mem_offset + self.stack_off;
+        let off = self.get_cur_off();
         self.inss.push(Instrument::Mov(self.get_v_from_off(off), v));
         v
     }
 
     pub fn bin_op(&mut self, op: Token) -> V {
-        let v2 = self.get_v_from_off(self.mem_offset + self.stack_off - 1);
-        let v1 = self.get_v_from_off(self.mem_offset + self.stack_off - 2);
+        let off = self.get_cur_off();
+        let v2 = self.get_v_from_off(off - 1);
+        let v1 = self.get_v_from_off(off - 2);
         self.inss.push(Instrument::BinOp(op, v1, v2, v1));
         self.stack_off -= 1;
         v1

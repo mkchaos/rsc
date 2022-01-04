@@ -113,7 +113,11 @@ impl Compiler for FuncHeadNd {
 }
 
 impl Compiler for FuncNd {
-    fn compile(&self, _prog: &mut Program) -> Option<V> {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
+        prog.enter_func(&self.head.name.name);
+        self.block.compile(prog);
+        prog.ret();
+        prog.exit_func();
         None
     }
 }

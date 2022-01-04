@@ -29,6 +29,10 @@ pub fn pipeline<T: Parser + SemanticAnalyzer + Compiler>(code: &str) {
                     }
                     let mut prog = Program::new(&cxt);
                     nd.compile(&mut prog);
+                    println!("{}", prog.main_entry());
+                    for it in prog.inss.iter() {
+                        println!("{:?}", it);
+                    }
                     let mut vm = VM::new(100, prog);
                     vm.execute();
                 }

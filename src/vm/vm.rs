@@ -18,7 +18,7 @@ pub struct VM {
 impl VM {
     pub fn new(data_stack_size: usize, prog: Program) -> Self {
         VM {
-            pc: 0,
+            pc: prog.main_entry(),
             pd: 0,
             datas: vec![0; data_stack_size],
             codes: prog.inss,
@@ -67,6 +67,7 @@ impl VM {
                 let a = self.getv(a);
                 println!("{}", a);
             }
+            _=>{}
         }
     }
 

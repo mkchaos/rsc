@@ -107,7 +107,10 @@ impl SemanticAnalyzer for FuncHeadNd {
 }
 
 impl SemanticAnalyzer for FuncNd {
-    fn analyze(&self, _cxt: &mut Context) -> Result<Type, SemanticErr> {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, SemanticErr> {
+        cxt.enter_func();
+        self.block.analyze(cxt)?;
+        cxt.exit_func();
         Ok(Type::Void)
     }
 }
