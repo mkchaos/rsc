@@ -108,15 +108,7 @@ impl Parser for StmtNd {
                 Some(Token::Assign) => {
                     seq = s.advance(1);
                 }
-                _ => {
-                    return Some((
-                        s,
-                        StmtNd {
-                            var: var,
-                            expr: None,
-                        },
-                    ))
-                }
+                _ => return Some((s, StmtNd::new(var, None))),
             }
         }
         let sp = ExprNd::parse(seq.clone());
@@ -125,13 +117,7 @@ impl Parser for StmtNd {
             seq = s;
             expr = Some(n);
         }
-        Some((
-            seq,
-            StmtNd {
-                var: var,
-                expr: expr,
-            },
-        ))
+        Some((seq, StmtNd::new(var, expr)))
     }
 }
 
@@ -162,6 +148,48 @@ impl Parser for BlockNd {
             mseq = seq;
         }
         Some((mseq.advance(1), BlockNd { items: items }))
+    }
+}
+
+impl Parser for FuncHeadNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let (seq, vn) = VarNd::parse(seq)?;
+        let (seq, _) = seq.eats(&vec![Token::LParen, Token::RParen])?;
+        Some((seq, FuncHeadNd { name: Box::new(vn) }))
+    }
+}
+
+impl Parser for FuncNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let (seq, head) = FuncHeadNd::parse(seq)?;
+        let (seq, block) = BlockNd::parse(seq)?;
+        Some((
+            seq,
+            FuncNd {
+                head: Box::new(head),
+                block: Box::new(block),
+            },
+        ))
+    }
+}
+
+impl Parser for GItemNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let sp = StmtNd::parse(seq.clone());
+        if sp.is_some() {
+            let (seq, n) = sp?;
+            let (seq, _) = seq.eat(Token::Semicolon)?;
+            if n.declared() {
+                return None;
+            }
+            return Some((seq, GItemNd::Stmt(n)));
+        }
+        let sp = FuncNd::parse(seq);
+        if sp.is_some() {
+            let (seq, n) = sp?;
+            return Some((seq, GItemNd::Func(n)));
+        }
+        None
     }
 }
 

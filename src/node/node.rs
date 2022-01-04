@@ -47,6 +47,23 @@ pub struct StmtNd {
     pub expr: Option<ExprNd>,
 }
 
+impl StmtNd {
+    pub fn new(var: Option<VarNd>, expr: Option<ExprNd>) -> Self {
+        StmtNd {
+            var: var,
+            expr: expr,
+        }
+    }
+
+    pub fn declared(&self) -> bool {
+        if self.var.is_none() {
+            false
+        } else {
+            self.var.as_ref().unwrap().declared()
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum ItemNd {
     Stmt(StmtNd),
@@ -58,24 +75,22 @@ pub struct BlockNd {
     pub items: Vec<ItemNd>,
 }
 
+#[derive(Debug, Clone)]
+pub struct FuncHeadNd {
+    pub name: Box<VarNd>,
+}
 
+#[derive(Debug, Clone)]
+pub struct FuncNd {
+    pub head: Box<FuncHeadNd>,
+    pub block: Box<BlockNd>,
+}
 
-// #[derive(Debug, Clone)]
-// pub struct FuncHeadNd {
-
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct FuncNd {
-//     pub head: Box<FuncHeadNd>,
-//     pub block: Box<BlockNd>,
-// }
-
-// #[derive(Debug, Clone)]
-// pub enum GItemNd {
-//     Stmt(StmtNd),
-//     Func(FuncNd),
-// }
+#[derive(Debug, Clone)]
+pub enum GItemNd {
+    Stmt(StmtNd),
+    Func(FuncNd),
+}
 
 #[derive(Debug, Clone)]
 pub struct RootNd {

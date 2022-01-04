@@ -26,6 +26,15 @@ impl Sequence {
         }
     }
 
+    pub fn eats(&self, ts: &[Token]) -> SeqPack<()> {
+        let mut seq = self.clone();
+        for it in ts.iter() {
+            let (s, _) = seq.eat(it.clone())?;
+            seq = s;
+        }
+        Some((seq, ()))
+    }
+
     pub fn eat_value(&self) -> SeqPack<Value> {
         if let Some(Token::Value(v)) = self.get(0) {
             Some((self.advance(1), v))
@@ -65,16 +74,9 @@ impl Sequence {
         f: F,
         tails: &[Token],
     ) -> SeqPack<T> {
-        let mut seq = self.clone();
-        for it in heads.iter() {
-            let (s, _) = seq.eat(it.clone())?;
-            seq = s;
-        }
-        let (mut seq, t) = f(seq)?;
-        for it in tails.iter() {
-            let (s, _) = seq.eat(it.clone())?;
-            seq = s;
-        }
+        let (seq, _) = self.eats(heads)?;
+        let (seq, t) = f(seq)?;
+        let (seq, _) = seq.eats(tails)?;
         Some((seq, t))
     }
 

@@ -100,6 +100,27 @@ impl SemanticAnalyzer for BlockNd {
     }
 }
 
+impl SemanticAnalyzer for FuncHeadNd {
+    fn analyze(&self, _cxt: &mut Context) -> Result<Type, SemanticErr> {
+        Ok(Type::Void)
+    }
+}
+
+impl SemanticAnalyzer for FuncNd {
+    fn analyze(&self, _cxt: &mut Context) -> Result<Type, SemanticErr> {
+        Ok(Type::Void)
+    }
+}
+
+impl SemanticAnalyzer for GItemNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, SemanticErr> {
+        match self {
+            GItemNd::Func(n) => n.analyze(cxt),
+            GItemNd::Stmt(n) => n.analyze(cxt),
+        }
+    }
+}
+
 impl SemanticAnalyzer for RootNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, SemanticErr> {
         for item in self.items.iter() {

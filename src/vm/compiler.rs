@@ -106,6 +106,27 @@ impl Compiler for BlockNd {
     }
 }
 
+impl Compiler for FuncHeadNd {
+    fn compile(&self, _prog: &mut Program) -> Option<V> {
+        None
+    }
+}
+
+impl Compiler for FuncNd {
+    fn compile(&self, _prog: &mut Program) -> Option<V> {
+        None
+    }
+}
+
+impl Compiler for GItemNd {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
+        match self {
+            GItemNd::Func(n) => n.compile(prog),
+            GItemNd::Stmt(n) => n.compile(prog),
+        }
+    }
+}
+
 impl Compiler for RootNd {
     fn compile(&self, prog: &mut Program) -> Option<V> {
         for it in self.items.iter() {
