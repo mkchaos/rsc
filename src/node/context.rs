@@ -9,7 +9,6 @@ pub enum SemanticErr {
     MismatchType,
 }
 
-
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub struct VarContext {
@@ -37,6 +36,10 @@ impl ScopeContext {
         }
     }
 
+    fn get_off(&self) -> usize {
+        self.mem_offset + self.mem_cur
+    }
+
     fn fetch(&self, name: &str) -> Option<VarContext> {
         match self.vars.get(name) {
             Some(n) => Some(*n),
@@ -51,7 +54,7 @@ impl ScopeContext {
             let var_cxt = VarContext {
                 id: vid,
                 scope_id: self.id,
-                mem_offset: self.mem_cur,
+                mem_offset: self.get_off(),
                 ty: ty.clone(),
             };
             self.mem_cur += 1;
@@ -65,8 +68,8 @@ impl ScopeContext {
 pub struct Context {
     cur_scope_id: usize,
     scope_stack: Vec<usize>,
-    pub cur_var_id: usize,
-    pub mem_cur: usize,
+    cur_var_id: usize,
+    mem_cur: usize,
     scopes: Vec<ScopeContext>,
 }
 
@@ -109,7 +112,7 @@ impl Context {
     pub fn declare(&mut self, var: &VarNd) -> Result<VarContext, SemanticErr> {
         let scope = &mut self.scopes[self.cur_scope_id];
         let cxt = scope.declare(&var.name, &var.ty.unwrap(), self.cur_var_id)?;
-        self.mem_cur = scope.mem_cur;
+        self.mem_cur = scope.get_off();
         self.cur_var_id += 1;
         Ok(cxt)
     }

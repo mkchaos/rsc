@@ -91,9 +91,11 @@ impl SemanticAnalyzer for ItemNd {
 
 impl SemanticAnalyzer for BlockNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, SemanticErr> {
+        cxt.enter_scope();
         for item in self.items.iter() {
             item.analyze(cxt)?;
         }
+        cxt.exit_scope();
         Ok(Type::Void)
     }
 }

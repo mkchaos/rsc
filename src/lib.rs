@@ -18,6 +18,9 @@ pub fn pipeline<T: Parser + SemanticAnalyzer + Compiler>(code: &str) {
             let nd = nd.unwrap();
             match analyze::<T>(&nd) {
                 Ok(cxt) => {
+                    for (_, v) in cxt.freeze() {
+                        println!("{:?}", v);
+                    }
                     let mut prog = Program::new(&cxt);
                     nd.compile(&mut prog);
                     let mut vm = VM::new(100, prog);
@@ -44,7 +47,7 @@ mod tests {
 
     #[test]
     fn test_pipeline() {
-        let code = "int a=1;int b=2;int c=a+b+3;a;b;c;";
+        let code = "int a=1;{int b=2;int c=a+b+3;a;b;c;}";
         super::pipeline::<super::RootNd>(code);
     }
 }
