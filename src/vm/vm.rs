@@ -1,4 +1,4 @@
-use super::compiler::{Instrument, Program, V};
+use super::program::{Instrument, Program, V};
 use crate::token::Token;
 
 pub struct VM {
