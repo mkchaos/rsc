@@ -94,5 +94,5 @@ pub enum GItemNd {
 
 #[derive(Debug, Clone)]
 pub struct RootNd {
-    pub items: Vec<ItemNd>,
+    pub items: Vec<GItemNd>,
 }

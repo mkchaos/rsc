@@ -175,19 +175,19 @@ impl Parser for FuncNd {
 
 impl Parser for GItemNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
-        let sp = StmtNd::parse(seq.clone());
-        if sp.is_some() {
-            let (seq, n) = sp?;
-            let (seq, _) = seq.eat(Token::Semicolon)?;
-            if n.declared() {
-                return None;
-            }
-            return Some((seq, GItemNd::Stmt(n)));
-        }
-        let sp = FuncNd::parse(seq);
+        let sp = FuncNd::parse(seq.clone());
         if sp.is_some() {
             let (seq, n) = sp?;
             return Some((seq, GItemNd::Func(n)));
+        }
+        let sp = StmtNd::parse(seq);
+        if sp.is_some() {
+            let (seq, n) = sp?;
+            let (seq, _) = seq.eat(Token::Semicolon)?;
+            if !n.declared() {
+                return None;
+            }
+            return Some((seq, GItemNd::Stmt(n)));
         }
         None
     }
@@ -198,7 +198,7 @@ impl Parser for RootNd {
         let mut items = Vec::new();
         let mut mseq = seq;
         while !mseq.empty() {
-            let (seq, n) = ItemNd::parse(mseq)?;
+            let (seq, n) = GItemNd::parse(mseq)?;
             items.push(n);
             mseq = seq;
         }
