@@ -48,6 +48,36 @@ pub struct StmtNd {
 }
 
 #[derive(Debug, Clone)]
+pub enum ItemNd {
+    Stmt(StmtNd),
+    Block(BlockNd),
+}
+
+#[derive(Debug, Clone)]
+pub struct BlockNd {
+    pub items: Vec<ItemNd>,
+}
+
+
+
+// #[derive(Debug, Clone)]
+// pub struct FuncHeadNd {
+
+// }
+
+// #[derive(Debug, Clone)]
+// pub struct FuncNd {
+//     pub head: Box<FuncHeadNd>,
+//     pub block: Box<BlockNd>,
+// }
+
+// #[derive(Debug, Clone)]
+// pub enum GItemNd {
+//     Stmt(StmtNd),
+//     Func(FuncNd),
+// }
+
+#[derive(Debug, Clone)]
 pub struct RootNd {
-    pub stmts: Vec<StmtNd>,
+    pub items: Vec<ItemNd>,
 }

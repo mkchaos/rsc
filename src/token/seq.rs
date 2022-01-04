@@ -1,7 +1,7 @@
 use super::token::{Token, Type, Value};
 use std::rc::Rc;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Sequence {
     tokens: Rc<Vec<Token>>,
     cur: usize,
@@ -79,17 +79,22 @@ impl Sequence {
     }
 
     pub fn get(&self, idx: usize) -> Option<Token> {
-        if idx >= self.len() {
+        let off = self.cur + idx;
+        if off >= self.tokens.len() {
             None
         } else {
-            Some(self.tokens[idx + self.cur].clone())
+            Some(self.tokens[off].clone())
         }
     }
 
     pub fn advance(&self, off: usize) -> Self {
+        let mut cur = self.cur + off;
+        if cur > self.tokens.len() {
+            cur = self.tokens.len();
+        }
         Sequence {
             tokens: self.tokens.clone(),
-            cur: self.cur + off,
+            cur: cur,
         }
     }
 

@@ -97,65 +97,83 @@ impl Parser for VarNd {
 
 impl Parser for StmtNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
+        let mut seq = seq;
         let sp = VarNd::parse(seq.clone());
+        let mut var = None;
+        let mut expr = None;
         if sp.is_some() {
-            let (mut seq, n) = sp?;
-            let sp = seq
-                .clone()
-                .eat_fn(&vec![Token::Assign], ExprNd::parse, &vec![]);
-            let mut expr = None;
-            if sp.is_some() {
-                let (s, n) = sp?;
-                expr = Some(n);
-                seq = s;
+            let (s, n) = sp?;
+            var = Some(n);
+            match s.get(0) {
+                Some(Token::Assign) => {
+                    seq = s.advance(1);
+                }
+                _ => {
+                    return Some((
+                        s,
+                        StmtNd {
+                            var: var,
+                            expr: None,
+                        },
+                    ))
+                }
             }
-            return Some((
-                seq,
-                StmtNd {
-                    var: Some(n),
-                    expr: expr,
-                },
-            ));
         }
-        let sp = seq
-            .clone()
-            .eat_fn(&vec![Token::Assign], ExprNd::parse, &vec![]);
+        let sp = ExprNd::parse(seq.clone());
         if sp.is_some() {
-            let (seq, n) = sp?;
-            return Some((
-                seq,
-                StmtNd {
-                    var: None,
-                    expr: Some(n),
-                },
-            ));
+            let (s, n) = sp?;
+            seq = s;
+            expr = Some(n);
         }
         Some((
             seq,
             StmtNd {
-                var: None,
-                expr: None,
+                var: var,
+                expr: expr,
             },
         ))
     }
 }
 
+impl Parser for ItemNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let sp = BlockNd::parse(seq.clone());
+        if sp.is_some() {
+            let (seq, n) = sp?;
+            return Some((seq, ItemNd::Block(n)));
+        }
+        let sp = StmtNd::parse(seq);
+        if sp.is_some() {
+            let (seq, n) = sp?;
+            let (seq, _) = seq.eat(Token::Semicolon)?;
+            return Some((seq, ItemNd::Stmt(n)));
+        }
+        None
+    }
+}
+
+impl Parser for BlockNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let mut items = Vec::new();
+        let (mut mseq, _) = seq.eat(Token::LBrace)?;
+        while mseq.get(0) != Some(Token::RBrace) {
+            let (seq, n) = ItemNd::parse(mseq)?;
+            items.push(n);
+            mseq = seq;
+        }
+        Some((mseq.advance(1), BlockNd { items: items }))
+    }
+}
+
 impl Parser for RootNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
-        let mut seq = seq;
-        let mut stmts: Vec<StmtNd> = Vec::new();
-        loop {
-            let sp = seq
-                .clone()
-                .eat_fn(&vec![], StmtNd::parse, &vec![Token::Semicolon]);
-            if sp.is_some() {
-                let (s, n) = sp?;
-                seq = s;
-                stmts.push(n);
-            } else {
-                break;
-            }
+        let mut items = Vec::new();
+        let mut mseq = seq;
+        while !mseq.empty() {
+            let (seq, n) = ItemNd::parse(mseq)?;
+            items.push(n);
+            mseq = seq;
         }
-        Some((seq, RootNd { stmts: stmts }))
+        Some((mseq.advance(1), RootNd { items: items }))
     }
 }

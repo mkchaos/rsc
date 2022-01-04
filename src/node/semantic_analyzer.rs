@@ -80,10 +80,28 @@ impl SemanticAnalyzer for StmtNd {
     }
 }
 
+impl SemanticAnalyzer for ItemNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, SemanticErr> {
+        match self {
+            ItemNd::Block(n) => n.analyze(cxt),
+            ItemNd::Stmt(n) => n.analyze(cxt),
+        }
+    }
+}
+
+impl SemanticAnalyzer for BlockNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, SemanticErr> {
+        for item in self.items.iter() {
+            item.analyze(cxt)?;
+        }
+        Ok(Type::Void)
+    }
+}
+
 impl SemanticAnalyzer for RootNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, SemanticErr> {
-        for stmt in self.stmts.iter() {
-            stmt.analyze(cxt)?;
+        for item in self.items.iter() {
+            item.analyze(cxt)?;
         }
         Ok(Type::Void)
     }

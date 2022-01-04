@@ -43,7 +43,6 @@ impl Compiler for ExprNd {
     }
 }
 
-// No Push Here
 impl Compiler for VarNd {
     fn compile(&self, prog: &mut Program) -> Option<V> {
         let v = prog.get_v_from_var(self);
@@ -88,10 +87,29 @@ impl Compiler for StmtNd {
     }
 }
 
+impl Compiler for ItemNd {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
+        match self {
+            ItemNd::Block(n) => n.compile(prog),
+            ItemNd::Stmt(n) => n.compile(prog),
+        }
+    }
+}
+
+impl Compiler for BlockNd {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
+        for it in self.items.iter() {
+            it.compile(prog);
+            prog.reset_stack_off();
+        }
+        None
+    }
+}
+
 impl Compiler for RootNd {
     fn compile(&self, prog: &mut Program) -> Option<V> {
-        for st in self.stmts.iter() {
-            st.compile(prog);
+        for it in self.items.iter() {
+            it.compile(prog);
             prog.reset_stack_off();
         }
         None
