@@ -4,26 +4,26 @@ use super::Program;
 use super::program::V;
 
 pub trait Compiler {
-    fn compile(&self, prog: &mut Program) -> V;
+    fn compile(&self, prog: &mut Program) -> Option<V>;
 }
 
 impl Compiler for FactorNd {
-    fn compile(&self, prog: &mut Program) -> V {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
         match self {
             FactorNd::Var(n) => n.compile(prog),
-            FactorNd::Value(v) => prog.push(v.clone()),
+            FactorNd::Value(v) => Some(prog.push_value(v.clone())),
             FactorNd::Expr(n) => n.compile(prog),
         }
     }
 }
 
 impl Compiler for TermNd {
-    fn compile(&self, prog: &mut Program) -> V {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
         if self.b.is_some() {
             let (b, op) = self.b.as_ref().unwrap();
             self.a.compile(prog);
             b.compile(prog);
-            prog.bin_op(op.clone())
+            Some(prog.bin_op(op.clone()))
         } else {
             self.a.compile(prog)
         }
@@ -31,12 +31,12 @@ impl Compiler for TermNd {
 }
 
 impl Compiler for ExprNd {
-    fn compile(&self, prog: &mut Program) -> V {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
         if self.b.is_some() {
             let (b, op) = self.b.as_ref().unwrap();
             self.a.compile(prog);
             b.compile(prog);
-            prog.bin_op(op.clone())
+            Some(prog.bin_op(op.clone()))
         } else {
             self.a.compile(prog)
         }
@@ -45,20 +45,20 @@ impl Compiler for ExprNd {
 
 // No Push Here
 impl Compiler for VarNd {
-    fn compile(&self, prog: &mut Program) -> V {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
         let v = prog.get_v_from_var(self);
         if self.declared() {
             prog.update_offset(self);
-            V::NoWhere
+            None
         } else {
-            prog.push_var(v)
+            Some(prog.push_var(v))
         }
     }
 }
 
 impl Compiler for StmtNd {
-    fn compile(&self, prog: &mut Program) -> V {
-        let mut w = V::NoWhere;
+    fn compile(&self, prog: &mut Program) -> Option<V> {
+        let mut w = None;
         if self.expr.is_some() {
             w = self.expr.as_ref().unwrap().compile(prog);
         }
@@ -68,11 +68,11 @@ impl Compiler for StmtNd {
             if self.expr.is_none() {
                 if var.declared() {
                     // just push default
-                    prog.push(Value::Int(0));
+                    prog.push_value(Value::Int(0));
                     w = var.compile(prog);
                 } else {
                     // print
-                    return prog.print_var(var);
+                    return Some(prog.print_var(var));
                 }
             } else {
                 if var.declared() {
@@ -80,7 +80,7 @@ impl Compiler for StmtNd {
                     w = var.compile(prog);
                 } else {
                     // mov to v
-                    w = prog.pop(v);
+                    w = Some(prog.pop(v));
                 }
             }
         }
@@ -89,11 +89,11 @@ impl Compiler for StmtNd {
 }
 
 impl Compiler for RootNd {
-    fn compile(&self, prog: &mut Program) -> V {
+    fn compile(&self, prog: &mut Program) -> Option<V> {
         for st in self.stmts.iter() {
             st.compile(prog);
             prog.reset_stack_off();
         }
-        V::NoWhere
+        None
     }
 }

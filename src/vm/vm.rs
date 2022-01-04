@@ -29,8 +29,6 @@ impl VM {
         match p {
             V::Direct(a) => self.datas[a],
             V::Indirect(a) => self.datas[self.pd + a],
-            V::Value(a) => a,
-            _ => 0,
         }
     }
 
@@ -38,8 +36,6 @@ impl VM {
         match p {
             V::Direct(a) => self.datas[a] = v,
             V::Indirect(a) => self.datas[self.pd + a] = v,
-            V::Value(_) => {}
-            _ => {}
         }
     }
 
@@ -47,6 +43,9 @@ impl VM {
         let ins = self.codes[self.pc].clone();
         self.pc += 1;
         match ins {
+            Instrument::Set(a, v) => {
+                self.setv(a, v);
+            }
             Instrument::Mov(a, b) => {
                 self.setv(b, self.getv(a));
             }

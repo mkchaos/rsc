@@ -7,13 +7,12 @@ use std::collections::HashMap;
 pub enum V {
     Direct(usize),
     Indirect(usize),
-    Value(i32),
-    NoWhere,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Instrument {
     Mov(V, V),
+    Set(V, i32),
     // Op(Token, V, V),
     BinOp(Token, V, V, V),
     Print(V),
@@ -68,7 +67,7 @@ impl Program {
         }
     }
 
-    pub fn push(&mut self, v: Value) -> V {
+    pub fn push_value(&mut self, v: Value) -> V {
         let off = self.mem_offset + self.stack_off;
         self.stack_off += 1;
         let mem_v = match v {
@@ -82,7 +81,7 @@ impl Program {
             }
         };
         let v = self.get_v_from_off(off);
-        self.inss.push(Instrument::Mov(V::Value(mem_v), v));
+        self.inss.push(Instrument::Set(v, mem_v));
         v
     }
 
