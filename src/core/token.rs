@@ -1,22 +1,4 @@
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum Value {
-    Int(i32),
-    Bool(bool),
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum Type {
-    Void,
-    Int,
-    Bool,
-}
-
-pub fn get_value_type(v: Value) -> Type {
-    match v {
-        Value::Int(_) => Type::Int,
-        Value::Bool(_) => Type::Bool,
-    }
-}
+use crate::core::{Value, Type};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
@@ -26,7 +8,7 @@ pub enum Token {
     Multiply,
     Divide,
     Modulo,
-    Assign,
+    Eq,
     Semicolon,
     LParen,
     RParen,
@@ -35,6 +17,13 @@ pub enum Token {
     LBrace,
     RBrace,
     Comma,
+
+    Or,
+    And,
+    Not,
+
+    Less,
+    Greater,
 
     // keywords
     If,
@@ -50,13 +39,13 @@ pub enum Token {
     Name(String),
 }
 
-const RESERVED_SINGLE_CHAR_TOKENS: [(char, Token); 14] = [
+const RESERVED_SINGLE_CHAR_TOKENS: [(char, Token); 19] = [
     ('+', Token::Add),
     ('-', Token::Minus),
     ('*', Token::Multiply),
     ('/', Token::Divide),
     ('%', Token::Modulo),
-    ('=', Token::Assign),
+    ('=', Token::Eq),
     ('[', Token::LBracket),
     (']', Token::RBracket),
     ('(', Token::LParen),
@@ -65,6 +54,11 @@ const RESERVED_SINGLE_CHAR_TOKENS: [(char, Token); 14] = [
     ('}', Token::RBrace),
     (';', Token::Semicolon),
     (',', Token::Comma),
+    ('&', Token::And),
+    ('|', Token::Or),
+    ('!', Token::Not),
+    ('<', Token::Less),
+    ('>', Token::Greater),
 ];
 
 const RESERVED_KEYWORDS: [(&'static str, Token); 11] = [
