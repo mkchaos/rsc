@@ -1,76 +1,39 @@
-// mod node;
-// mod token;
-// mod vm;
-mod core;
-mod parser;
-mod lexer;
-mod semantic_analyzer;
 mod compiler;
+mod core;
+mod lexer;
+mod parser;
+mod semantic_analyzer;
 mod vm;
 
-// use node::*;
-// use std::fs;
-// use token::*;
-// use vm::*;
+#[cfg(test)]
+mod tests {
+    use std::fs;
+    use super::*;
+    use super::lexer::lexer;
+    use super::parser::Parser;
+    use crate::core::*;
+
+    fn load_code_from_file(path: &str) -> String {
+        fs::read_to_string(path).expect("No file")
+    }
 
 
-// pub fn load_code(path: &str) -> String {
-//     fs::read_to_string(path).expect("Something went wrong reading the file")
-// }
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
 
-// pub fn pipeline<T: Parser + SemanticAnalyzer + Compiler>(code: &str) {
-//     match lexer(code) {
-//         Ok(s) => {
-//             let seq = Sequence::new(s);
-//             println!("{:?}", seq);
-//             let nd = parse::<T>(seq);
-//             if nd.is_none() {
-//                 println!("parse error");
-//                 return;
-//             }
-//             let nd = nd.unwrap();
-//             match analyze::<T>(&nd) {
-//                 Ok(cxt) => {
-//                     for (_, v) in cxt.freeze() {
-//                         println!("{:?}", v);
-//                     }
-//                     let mut prog = Program::new(&cxt);
-//                     nd.compile(&mut prog);
-//                     println!("{}", prog.main_entry());
-//                     for it in prog.inss.iter() {
-//                         println!("{:?}", it);
-//                     }
-//                     let mut vm = VM::new(100, prog);
-//                     vm.execute();
-//                 }
-//                 Err(e) => {
-//                     println!("{:?}", e);
-//                 }
-//             }
-//         }
-//         Err(e) => {
-//             println!("{:?}", e);
-//         }
-//     }
-// }
-
-// #[cfg(test)]
-// mod tests {
-//     #[test]
-//     fn it_works() {
-//         let result = 2 + 2;
-//         assert_eq!(result, 4);
-//     }
-
-//     #[test]
-//     fn test_pipeline() {
-//         let code = "int a=1;int b=2;int c=a+b+3;a;b;c;";
-//         super::pipeline::<super::RootNd>(code);
-//     }
-
-//     #[test]
-//     fn test_func() {
-//         let code = super::load_code("example/1.c");
-//         super::pipeline::<super::RootNd>(&code);
-//     }
-// }
+    #[test]
+    fn test_expr_parser() {
+        // let code = &load_code_from_file("example/1.c");
+        let code = "1+f(12*2,42)*2";
+        let lex_res = lexer(code);
+        assert!(lex_res.is_ok(), "Lex error");
+        let seq = Sequence::new(lex_res.unwrap());
+        println!("seq {:?}", seq);
+        let parse_res = ExprNd::parse(seq);
+        assert!(parse_res.is_some(), "parse error");
+        println!("{:?}", parse_res.unwrap());
+    }
+}

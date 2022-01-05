@@ -61,7 +61,7 @@ const RESERVED_SINGLE_CHAR_TOKENS: [(char, Token); 19] = [
     ('>', Token::Greater),
 ];
 
-const RESERVED_KEYWORDS: [(&'static str, Token); 11] = [
+const RESERVED_KEYWORDS: [(&'static str, Token); 8] = [
     ("if", Token::If),
     ("else", Token::Else),
     ("while", Token::While),
@@ -70,9 +70,6 @@ const RESERVED_KEYWORDS: [(&'static str, Token); 11] = [
     ("continue", Token::Continue),
     ("void", Token::Type(Type::Void)),
     ("int", Token::Type(Type::Int)),
-    ("bool", Token::Type(Type::Bool)),
-    ("true", Token::Value(Value::Bool(true))),
-    ("false", Token::Value(Value::Bool(false))),
 ];
 
 // Only positive & No overflow

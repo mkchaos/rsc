@@ -1,7 +1,4 @@
-use crate::core::{Token, get_token_from_char, get_token_from_word};
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct LexErr(String);
+use crate::core::{Token, LexErr, get_token_from_char, get_token_from_word};
 
 #[allow(dead_code)]
 pub fn lexer(code: &str) -> Result<Vec<Token>, LexErr> {
@@ -34,25 +31,27 @@ pub fn lexer(code: &str) -> Result<Vec<Token>, LexErr> {
     Ok(tokens)
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     #[test]
-//     fn test_lexer() {
-//         let code = "int foo() {}";
-//         match lexer(code) {
-//             Ok(tks) => {
-//                 let seq = Sequence::new(tks);
-//                 assert_eq!(seq.get(0), Some(Token::Type(Type::Int)));
-//                 assert_eq!(seq.get(1), Some(Token::Name("foo".to_owned())));
-//                 assert_eq!(seq.get(2), Some(Token::LParen));
-//                 assert_eq!(seq.get(3), Some(Token::RParen));
-//                 assert_eq!(seq.get(4), Some(Token::LBrace));
-//                 assert_eq!(seq.get(5), Some(Token::RBrace));
-//             }
-//             Err(_) => {
-//                 assert!(false, "Not Ok");
-//             }
-//         }
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use crate::core::*;
+    use super::*;
+
+    #[test]
+    fn test_lexer() {
+        let code = "int foo() {}";
+        match lexer(code) {
+            Ok(tks) => {
+                let seq = Sequence::new(tks);
+                assert_eq!(seq.get(0), Some(Token::Type(Type::Int)));
+                assert_eq!(seq.get(1), Some(Token::Name("foo".to_owned())));
+                assert_eq!(seq.get(2), Some(Token::LParen));
+                assert_eq!(seq.get(3), Some(Token::RParen));
+                assert_eq!(seq.get(4), Some(Token::LBrace));
+                assert_eq!(seq.get(5), Some(Token::RBrace));
+            }
+            Err(_) => {
+                assert!(false, "Not Ok");
+            }
+        }
+    }
+}

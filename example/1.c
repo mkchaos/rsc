@@ -1,9 +1,10 @@
-int a;
-int b = 1;
+const int a = 1;
+int b = 3;
 
-int main() {
-    int a = 1;
-    int b = 3;
-    int c = a + b;
-    c;
+int f(int a) {}
+int f(int a , int b){}
+
+int main () {
+   f(1);
+   f(1,1);
 }

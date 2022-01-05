@@ -112,7 +112,7 @@ impl Parser for FuncNd {
         let mut params = Vec::new();
         let mut first_param = true;
         let (mut mseq, _) = seq.eat(Token::LParen)?;
-        while mseq.get(0) != Some(Token::RBrace) {
+        while mseq.get(0) != Some(Token::RParen) {
             if !first_param {
                 let (seq, _) = mseq.eat(Token::Comma)?;
                 mseq = seq;
@@ -150,7 +150,7 @@ impl Parser for FuncCallNd {
         let mut params = Vec::new();
         let mut first_param = true;
         let (mut mseq, _) = seq.eat(Token::LParen)?;
-        while mseq.get(0) != Some(Token::RBrace) {
+        while mseq.get(0) != Some(Token::RParen) {
             if !first_param {
                 let (seq, _) = mseq.eat(Token::Comma)?;
                 mseq = seq;

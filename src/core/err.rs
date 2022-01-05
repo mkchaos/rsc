@@ -4,3 +4,6 @@ pub enum SemanticErr {
     NoDeclareUse,
     MismatchType,
 }
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct LexErr(pub String);

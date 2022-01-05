@@ -9,7 +9,7 @@ mod value;
 
 pub use code::{Addr, Code};
 pub use context::{ProgContext, SemanticContext, VarContext};
-pub use err::SemanticErr;
+pub use err::{LexErr, SemanticErr};
 pub use node::*;
 pub use op::{get_calc_stack, CalcItem, Op};
 pub use seq::{SeqPack, Sequence};

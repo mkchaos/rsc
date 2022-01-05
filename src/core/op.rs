@@ -1,64 +1,62 @@
-use crate::core::{FactorNd, SeqPack, Sequence, Token, Value};
+use crate::core::{FactorNd, SeqPack, Sequence, Token};
+use crate::parser::Parser;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+use std::collections::HashMap;
+
 #[derive(Debug, EnumIter, PartialEq, Eq, Clone, Copy)]
 pub enum Op {
-    // 1
     Paren,
-    // 2
     UnaryMinus,
     Not,
-    // 3
     Multiply,
     Divide,
     Modulo,
-    // 4
     Add,
     Minus,
-    // 6
     GreaterEq,
     GreaterThan,
     LessEq,
     LessThan,
-    // 7
     Eq,
     NotEq,
-    // 8
     And,
-    // 9
     Or,
 }
 
-#[derive(Debug, Clone)]
-pub enum CalcItem {
-    Op(Op),
-    Factor(FactorNd),
-}
+// op (param num, num of ops)
+const LEVEL_OPS: [(u8, u8); 8] = [
+    (1, 1),
+    (1, 2),
+    (2, 3),
+    (2, 2),
+    (2, 4),
+    (2, 2),
+    (2, 1),
+    (2, 1),
+];
 
-fn eat_factor(_seq: Sequence) -> SeqPack<FactorNd> {
-    None
-}
-
-fn op_priority(op: Op) -> u8 {
-    match op {
-        Op::Paren => 1,
-        Op::UnaryMinus => 2,
-        Op::Not => 2,
-        Op::Multiply => 3,
-        Op::Divide => 3,
-        Op::Modulo => 3,
-        Op::Add => 4,
-        Op::Minus => 4,
-        Op::GreaterEq => 6,
-        Op::GreaterThan => 6,
-        Op::LessEq => 6,
-        Op::LessThan => 6,
-        Op::Eq => 7,
-        Op::NotEq => 7,
-        Op::And => 8,
-        Op::Or => 9,
+fn get_level(op: Op) -> u8 {
+    let mut off = 0;
+    for (idx, o) in Op::iter().enumerate() {
+        if op == o {
+            off = idx;
+            break;
+        }
     }
+    for (idx, (_, n)) in LEVEL_OPS.iter().enumerate() {
+        let n = *n as usize;
+        if off < n {
+            return idx as u8;
+        }
+        off -= n;
+    }
+    panic!("should not reach here");
+}
+
+fn max_level() -> u8 {
+    LEVEL_OPS.len() as u8 - 1
 }
 
 fn bin_op_tokens(op: Op) -> Vec<Token> {
@@ -82,8 +80,14 @@ fn bin_op_tokens(op: Op) -> Vec<Token> {
     }
 }
 
-fn eat_op(seq: Sequence, op: Op) -> SeqPack<Vec<CalcItem>> {
-    let priority = op_priority(op);
+#[derive(Debug, Clone)]
+pub enum CalcItem {
+    Op(Op),
+    Factor(FactorNd),
+}
+
+fn eat_op(seq: Sequence, op: Op, mp: &mut HashMap<(u8, u8), SeqPack<Vec<CalcItem>>>) -> SeqPack<Vec<CalcItem>> {
+    let level = get_level(op);
     match op {
         Op::Paren => {
             let (seq, _) = seq.eat(Token::LParen)?;
@@ -93,17 +97,13 @@ fn eat_op(seq: Sequence, op: Op) -> SeqPack<Vec<CalcItem>> {
         }
         Op::UnaryMinus => {
             let (seq, _) = seq.eat(Token::Minus)?;
-            let (seq, v) = seq.eat_value()?;
-            match v {
-                Value::Int(x) => {
-                    Some((seq, vec![CalcItem::Factor(FactorNd::Value(Value::Int(-x)))]))
-                }
-                _ => None,
-            }
+            let (seq, mut st) = _get_calc_stack(seq, level - 1, mp)?;
+            st.push(CalcItem::Op(Op::UnaryMinus));
+            Some((seq, st))
         }
         Op::Not => {
             let (seq, _) = seq.eat(Token::Not)?;
-            let (seq, mut st) = _get_calc_stack(seq, priority)?;
+            let (seq, mut st) = _get_calc_stack(seq, level, mp)?;
             st.push(CalcItem::Op(Op::Not));
             Some((seq, st))
         }
@@ -121,10 +121,14 @@ fn eat_op(seq: Sequence, op: Op) -> SeqPack<Vec<CalcItem>> {
         | Op::And
         | Op::Or => {
             let mut stack = Vec::new();
-            let (seq, n) = eat_factor(seq)?;
+            print!("m");
+            let (seq, st) = _get_calc_stack(seq, level - 1, mp)?;
+            print!("r({})", seq.len());
+            stack.extend(st);
             let (seq, _) = seq.eats(&bin_op_tokens(op))?;
-            let (seq, st) = _get_calc_stack(seq, priority)?;
-            stack.push(CalcItem::Factor(n));
+            print!("y({})", seq.len());
+            let (seq, st) = _get_calc_stack(seq, level, mp)?;
+            print!("u({})", seq.len());
             stack.extend(st);
             stack.push(CalcItem::Op(op));
             Some((seq, stack))
@@ -132,21 +136,45 @@ fn eat_op(seq: Sequence, op: Op) -> SeqPack<Vec<CalcItem>> {
     }
 }
 
-fn _get_calc_stack(seq: Sequence, priority: u8) -> SeqPack<Vec<CalcItem>> {
+fn _get_calc_stack(seq: Sequence, level: u8, mp: &mut HashMap<(u8, u8), SeqPack<Vec<CalcItem>>>) -> SeqPack<Vec<CalcItem>> {
+    let ky = (seq.len() as u8, level);
+    if mp.contains_key(&ky) {
+        return mp[&ky].clone()
+    }
+    mp.insert(ky, None);
+    // println!("nn {} {}", seq.len(), level);
+    print!("g({}{})", seq.len(),level);
     for op in Op::iter() {
-        if op_priority(op) >= priority {
+        if get_level(op) != level {
             continue;
         }
-        let sp = eat_op(seq.clone(), op);
-        if sp.is_some() {
-            return sp;
+        // println!("tt {:?} {} {}", op, get_level(op), level);
+        if op == Op::Add {
+            print!("t");
+        }
+        if let Some((seq, st)) = eat_op(seq.clone(), op, mp) {
+            // println!("qq {:?} {:?}", seq, op);
+            print!("q");
+            let res = Some((seq, st));
+            mp.insert(ky, res.clone());
+            return res;
         }
     }
-    let (seq, n) = eat_factor(seq)?;
-    Some((seq, vec![CalcItem::Factor(n)]))
+
+    let res = if level == 0 {
+        let (seq, factor) = FactorNd::parse(seq)?;
+        print!("c");
+        Some((seq, vec![CalcItem::Factor(factor)]))
+    } else {
+        print!("v");
+        _get_calc_stack(seq, level - 1, mp)
+    };
+    mp.insert(ky, res.clone());
+    res
 }
 
 #[allow(dead_code)]
 pub fn get_calc_stack(seq: Sequence) -> SeqPack<Vec<CalcItem>> {
-    _get_calc_stack(seq, !0)
+    let mut mp = HashMap::new();
+    _get_calc_stack(seq, max_level(), &mut mp)
 }
