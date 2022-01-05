@@ -121,14 +121,10 @@ fn eat_op(seq: Sequence, op: Op, mp: &mut HashMap<(u8, u8), SeqPack<Vec<CalcItem
         | Op::And
         | Op::Or => {
             let mut stack = Vec::new();
-            print!("m");
             let (seq, st) = _get_calc_stack(seq, level - 1, mp)?;
-            print!("r({})", seq.len());
             stack.extend(st);
             let (seq, _) = seq.eats(&bin_op_tokens(op))?;
-            print!("y({})", seq.len());
             let (seq, st) = _get_calc_stack(seq, level, mp)?;
-            print!("u({})", seq.len());
             stack.extend(st);
             stack.push(CalcItem::Op(op));
             Some((seq, stack))
@@ -142,19 +138,11 @@ fn _get_calc_stack(seq: Sequence, level: u8, mp: &mut HashMap<(u8, u8), SeqPack<
         return mp[&ky].clone()
     }
     mp.insert(ky, None);
-    // println!("nn {} {}", seq.len(), level);
-    print!("g({}{})", seq.len(),level);
     for op in Op::iter() {
         if get_level(op) != level {
             continue;
         }
-        // println!("tt {:?} {} {}", op, get_level(op), level);
-        if op == Op::Add {
-            print!("t");
-        }
         if let Some((seq, st)) = eat_op(seq.clone(), op, mp) {
-            // println!("qq {:?} {:?}", seq, op);
-            print!("q");
             let res = Some((seq, st));
             mp.insert(ky, res.clone());
             return res;
@@ -163,10 +151,8 @@ fn _get_calc_stack(seq: Sequence, level: u8, mp: &mut HashMap<(u8, u8), SeqPack<
 
     let res = if level == 0 {
         let (seq, factor) = FactorNd::parse(seq)?;
-        print!("c");
         Some((seq, vec![CalcItem::Factor(factor)]))
     } else {
-        print!("v");
         _get_calc_stack(seq, level - 1, mp)
     };
     mp.insert(ky, res.clone());

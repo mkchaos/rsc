@@ -166,11 +166,12 @@ impl Parser for FuncCallNd {
 
 impl Parser for GItemNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
-        if let Some((seq, n)) = DeclareNd::parse(seq.clone()) {
-            return Some((seq, GItemNd::Declare(n)));
-        }
         if let Some((seq, n)) = FuncNd::parse(seq.clone()) {
             return Some((seq, GItemNd::Func(n)));
+        }
+        if let Some((seq, n)) = DeclareNd::parse(seq.clone()) {
+            let (seq, _) = seq.eat(Token::Semicolon)?;
+            return Some((seq, GItemNd::Declare(n)));
         }
         None
     }
