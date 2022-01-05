@@ -8,8 +8,8 @@ pub enum Addr {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Code {
-    SetA(Addr, Addr),
-    SetV(Addr, i32),
+    MovA(Addr, Addr),
+    MovV(Addr, i32),
     PushA(Addr),
     PushV(i32),
     Pop,

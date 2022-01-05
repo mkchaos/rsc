@@ -10,7 +10,7 @@ pub enum FactorNd {
 
 #[derive(Debug, Clone)]
 pub struct ExprNd {
-    stack: Vec<CalcItem>,
+    pub stack: Vec<CalcItem>,
 }
 
 impl ExprNd {
@@ -21,8 +21,8 @@ impl ExprNd {
 
 #[derive(Debug, Clone)]
 pub struct VarNd {
-    name: String,
-    id: RefCell<usize>,
+    pub name: String,
+    id: RefCell<u32>,
 }
 
 impl VarNd {
@@ -33,11 +33,11 @@ impl VarNd {
         }
     }
 
-    pub fn get_id(&self) -> usize {
+    pub fn get_id(&self) -> u32 {
         *self.id.borrow()
     }
 
-    pub fn set_id(&self, id: usize) {
+    pub fn set_id(&self, id: u32) {
         *self.id.borrow_mut() = id;
     }
 }
@@ -99,10 +99,10 @@ impl BlockNd {
 
 #[derive(Debug, Clone)]
 pub struct FuncNd {
-    ret_ty: Type,
-    var: VarNd,
-    params: Vec<(Type, Option<VarNd>)>,
-    block: Option<BlockNd>,
+    pub ret_ty: Type,
+    pub var: VarNd,
+    pub params: Vec<(Type, Option<VarNd>)>,
+    pub block: Option<BlockNd>,
 }
 
 impl FuncNd {
@@ -138,8 +138,8 @@ impl FuncNd {
 
 #[derive(Debug, Clone)]
 pub struct FuncCallNd {
-    var: VarNd,
-    params: Vec<ExprNd>,
+    pub var: VarNd,
+    pub params: Vec<ExprNd>,
 }
 
 impl FuncCallNd {

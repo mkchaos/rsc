@@ -86,7 +86,11 @@ pub enum CalcItem {
     Factor(FactorNd),
 }
 
-fn eat_op(seq: Sequence, op: Op, mp: &mut HashMap<(u8, u8), SeqPack<Vec<CalcItem>>>) -> SeqPack<Vec<CalcItem>> {
+fn eat_op(
+    seq: Sequence,
+    op: Op,
+    mp: &mut HashMap<(u8, u8), SeqPack<Vec<CalcItem>>>,
+) -> SeqPack<Vec<CalcItem>> {
     let level = get_level(op);
     match op {
         Op::Paren => {
@@ -132,10 +136,14 @@ fn eat_op(seq: Sequence, op: Op, mp: &mut HashMap<(u8, u8), SeqPack<Vec<CalcItem
     }
 }
 
-fn _get_calc_stack(seq: Sequence, level: u8, mp: &mut HashMap<(u8, u8), SeqPack<Vec<CalcItem>>>) -> SeqPack<Vec<CalcItem>> {
+fn _get_calc_stack(
+    seq: Sequence,
+    level: u8,
+    mp: &mut HashMap<(u8, u8), SeqPack<Vec<CalcItem>>>,
+) -> SeqPack<Vec<CalcItem>> {
     let ky = (seq.len() as u8, level);
     if mp.contains_key(&ky) {
-        return mp[&ky].clone()
+        return mp[&ky].clone();
     }
     mp.insert(ky, None);
     for op in Op::iter() {
@@ -163,4 +171,18 @@ fn _get_calc_stack(seq: Sequence, level: u8, mp: &mut HashMap<(u8, u8), SeqPack<
 pub fn get_calc_stack(seq: Sequence) -> SeqPack<Vec<CalcItem>> {
     let mut mp = HashMap::new();
     _get_calc_stack(seq, max_level(), &mut mp)
+}
+
+#[allow(dead_code)]
+pub fn get_op_param_num(op: Op) -> usize {
+    let level = get_level(op);
+    LEVEL_OPS[level as usize].0 as usize
+}
+
+pub fn calc_op_1(op: Op, a: i32) -> i32 {
+    a
+}
+
+pub fn calc_op_2(op: Op, a: i32, b: i32) -> i32 {
+    a
 }

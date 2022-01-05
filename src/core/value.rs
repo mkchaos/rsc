@@ -3,10 +3,11 @@ pub enum Value {
     Int(i32),
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Type {
     Void,
     Int,
+    Func(Vec<Type>),
 }
 
 pub fn get_value_type(v: Value) -> Type {

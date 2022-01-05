@@ -61,7 +61,7 @@ impl SemanticContext {
     }
 
     pub fn declare(&mut self, ty: Type, name: &str) -> Result<VarContext, SemanticErr> {
-        let ty_size = get_type_size(ty);
+        let ty_size = get_type_size(ty.clone());
         let id = self.cur_scope_id() as usize;
         let scope = &mut self.scopes[id];
         let cxt = scope.declare(name, ty, self.vars.len() as u32)?;

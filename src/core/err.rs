@@ -7,3 +7,10 @@ pub enum SemanticErr {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct LexErr(pub String);
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum RuntimeErr {
+    StackOverFlow,
+    DivideZero,
+    InvalidInstrument,
+}
