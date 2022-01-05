@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::context::SemanticContext;
 
 pub trait SemanticAnalyzer {
     fn analyze(&self, cxt: &mut SemanticContext) -> Result<(), SemanticErr>;

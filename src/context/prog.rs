@@ -1,4 +1,5 @@
-use crate::core::{Token, Value, Op, Addr, Code, SemanticContext, VarContext};
+use crate::core::{Token, Value, Op, Addr, Code};
+use crate::context::{VarContext, SemanticContext};
 
 use std::collections::HashMap;
 

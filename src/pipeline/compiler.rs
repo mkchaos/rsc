@@ -1,4 +1,5 @@
 use crate::core::*;
+use crate::context::ProgContext;
 
 pub trait Compiler {
     fn compile(&self, prog: &mut ProgContext);

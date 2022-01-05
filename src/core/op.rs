@@ -1,5 +1,5 @@
 use crate::core::{FactorNd, SeqPack, Sequence, Token};
-use crate::parser::Parser;
+use crate::pipeline::Parser;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
