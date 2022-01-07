@@ -1,10 +1,7 @@
-use crate::core::types::nodes::*;
-use crate::core::types::{CalcItem, ErrKind};
 use super::context::Context;
-
-pub trait Analyzer {
-    fn analyze(&self, cxt: &mut Context) -> Result<(), ErrKind>;
-}
+use super::Analyzer;
+use crate::core::types::nodes::*;
+use crate::core::types::{get_type_size, CalcItem, ErrKind, Type};
 
 impl Analyzer for FactorNd {
     fn analyze(&self, cxt: &mut Context) -> Result<(), ErrKind> {
@@ -20,13 +17,10 @@ impl Analyzer for ExprNd {
     fn analyze(&self, cxt: &mut Context) -> Result<(), ErrKind> {
         for it in self.stack.iter() {
             if let CalcItem::Factor(f) = it {
-                match f {
-                    FactorNd::Func(n) => n.analyze(cxt)?,
-                    FactorNd::Value(n) => {},
-                    FactorNd::Var(n) => n.analyze(cxt)?,
-                }
+                f.analyze(cxt)?;
             }
         }
+        // TODO: Calc Type Error
         Ok(())
     }
 }
@@ -81,29 +75,36 @@ impl Analyzer for ItemNd {
 
 impl Analyzer for BlockNd {
     fn analyze(&self, cxt: &mut Context) -> Result<(), ErrKind> {
-        cxt.in_scope();
+        cxt.enter_scope();
         for item in self.items.iter() {
             item.analyze(cxt)?;
         }
-        cxt.out_scope();
+        cxt.exit_scope();
         Ok(())
     }
 }
 
 impl Analyzer for FuncNd {
     fn analyze(&self, cxt: &mut Context) -> Result<(), ErrKind> {
-        if cxt.fetch(&self.var.name).is_ok() {
-            return Err(ErrKind::ReDeclare);
-        }
+        let name = &self.var.name;
+        let id = if self.is_impl() {
+            cxt.impl_fn(name, &self.ret_ty)?
+        } else {
+            cxt.declare_fn(name, &self.ret_ty)?
+        };
+        self.var.set_id(id);
         if self.is_impl() {
-            cxt.in_scope();
+            cxt.enter_scope();
             for (t, v) in self.params.iter() {
+                if v.is_none() {
+                    return Err(ErrKind::FormatErr);
+                }
                 let v = v.as_ref().unwrap();
-                let id = cxt.declare_var(&v.name, 1)?;
+                let id = cxt.declare_var(&v.name, get_type_size(t.clone()))?;
                 v.set_id(id);
             }
             self.block.as_ref().unwrap().analyze(cxt)?;
-            cxt.out_scope();
+            cxt.exit_scope();
         }
         Ok(())
     }
@@ -111,10 +112,23 @@ impl Analyzer for FuncNd {
 
 impl Analyzer for FuncCallNd {
     fn analyze(&self, cxt: &mut Context) -> Result<(), ErrKind> {
-        for p in self.params.iter() {
-            p.analyze(cxt)?;
+        let name = &self.var.name;
+        let id = cxt.fetch(name)?;
+        let ty = cxt.get_fn_type(id)?;
+        match ty {
+            Type::Func(v) => {
+                if self.params.len() != v.len() {
+                    Err(ErrKind::TypeErr)
+                } else {
+                    // TODO Match Types
+                    for p in self.params.iter() {
+                        p.analyze(cxt)?;
+                    }
+                    Ok(())
+                }
+            }
+            _ => Err(ErrKind::TypeErr),
         }
-        Ok(())
     }
 }
 

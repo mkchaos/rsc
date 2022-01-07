@@ -7,6 +7,7 @@ pub enum ErrKind {
     NoDeclare,
     ReImpl,
     TypeErr,
+    FormatErr,
 
     StackOverFlow,
     DivideZero,

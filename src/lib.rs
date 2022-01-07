@@ -1,5 +1,5 @@
 mod core;
-// mod pipeline;
+mod utils;
 
 #[cfg(test)]
 mod tests {

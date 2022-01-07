@@ -12,6 +12,7 @@ pub struct Context {
     cur_func_id: u32,
 }
 
+
 impl Context {
     pub fn new() -> Self {
         let mut cxt = Context {
@@ -39,14 +40,14 @@ impl Context {
         id
     }
 
-    pub fn in_scope(&mut self) -> u32 {
+    pub fn enter_scope(&mut self) -> u32 {
         let id = self.new_mem_layout();
         self.scopes.insert(id, ScopeInfo { id: id });
         self.scope_stack.push(id);
         id
     }
 
-    pub fn out_scope(&mut self) {
+    pub fn exit_scope(&mut self) {
         let idx = self.scope_stack.pop().unwrap() as usize;
         self.mem_layout[idx].end(self.cur_offset);
         if self.get_current_scope_id() == 0 {
@@ -72,6 +73,13 @@ impl Context {
             self.mem_layout.last_mut().unwrap().end(self.cur_offset);
             self.names.insert(name.to_owned(), vec![id]);
             Ok(id)
+        }
+    }
+
+    pub fn get_fn_type(&self, id: u32) -> Result<Type, ErrKind> {
+        match self.funcs.get(&id) {
+            Some(f) => Ok(f.ty.clone()),
+            None => Err(ErrKind::NoDeclare),
         }
     }
 
@@ -102,6 +110,7 @@ impl Context {
         );
         Ok(id)
     }
+
     pub fn declare_fn(&mut self, name: &str, ty: &Type) -> Result<u32, ErrKind> {
         let id = self.declare(name, 0)?;
         self.cur_func_id = id;
@@ -125,6 +134,24 @@ impl Context {
                 self.funcs.get_mut(&id).unwrap().has_impl = true;
                 Ok(id)
             }
+        }
+    }
+}
+
+pub struct SemanticInfo {
+    mem_layout: Vec<Layout>,
+    vars: HashMap<u32, VarInfo>,
+    scopes: HashMap<u32, ScopeInfo>,
+    funcs: HashMap<u32, FuncInfo>,
+}
+
+impl SemanticInfo {
+    pub fn new(cxt: &Context) -> Self {
+        SemanticInfo {
+            mem_layout: cxt.mem_layout,
+            vars: cxt.vars,
+            scopes: cxt.scopes,
+            funcs: cxt.funcs,
         }
     }
 }

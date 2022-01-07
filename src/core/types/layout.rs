@@ -1,6 +1,6 @@
 pub struct Layout {
-    offset: usize,
-    size: usize,
+    pub offset: usize,
+    pub size: usize,
 }
 
 impl Layout {
@@ -13,5 +13,9 @@ impl Layout {
 
     pub fn end(&mut self, off: usize) {
         self.size = off - self.offset;
+    }
+
+    pub fn last(&self) -> usize {
+        self.offset + self.size
     }
 }

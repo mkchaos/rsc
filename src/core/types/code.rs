@@ -1,23 +1,33 @@
 use super::op::Op;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Addr {
+pub enum MemAddr {
     Direct(usize),
     Indirect(usize),
+    Value(i32),
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum CodeAddr {
+    Direct(usize),
+    Offset(usize),
+    Start(u32), // scope
+    End(u32),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Code {
-    MovA(Addr, Addr),
-    MovV(Addr, i32),
-    PushA(Addr),
-    PushV(i32),
-    Pop,
+    Push(MemAddr),
+    Pop(MemAddr),
     Op(Op),
-    Call(usize),
-    Jump(isize),
-    CondJump(isize),
+    Call(CodeAddr),
+    Jump(CodeAddr),
+    CondJump(CodeAddr),
     Print,
     Ret,
     Exit,
+}
+
+pub fn only_pop_code() -> Code {
+    Code::Pop(MemAddr::Value(0))
 }
