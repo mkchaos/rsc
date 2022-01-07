@@ -1,7 +1,7 @@
-use crate::core::{Token, LexErr, get_token_from_char, get_token_from_word};
+use super::types::{ErrKind, Token, get_token_from_char, get_token_from_word};
 
 #[allow(dead_code)]
-pub fn lexer(code: &str) -> Result<Vec<Token>, LexErr> {
+pub fn lexer(code: &str) -> Result<Vec<Token>, ErrKind> {
     let mut word: String = String::new();
     let mut tokens: Vec<Token> = Vec::new();
     macro_rules! try_push_word {
@@ -11,7 +11,7 @@ pub fn lexer(code: &str) -> Result<Vec<Token>, LexErr> {
                     // seq.add(t);
                     tokens.push(t);
                 } else {
-                    return Err(LexErr(word.clone()));
+                    return Err(ErrKind::LexErr);
                 }
                 word.clear();
             }
@@ -33,7 +33,7 @@ pub fn lexer(code: &str) -> Result<Vec<Token>, LexErr> {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::*;
+    use super::super::types::Type;
     use super::*;
 
     #[test]
@@ -41,13 +41,13 @@ mod tests {
         let code = "int foo() {}";
         match lexer(code) {
             Ok(tks) => {
-                let seq = Sequence::new(tks);
-                assert_eq!(seq.get(0), Some(Token::Type(Type::Int)));
-                assert_eq!(seq.get(1), Some(Token::Name("foo".to_owned())));
-                assert_eq!(seq.get(2), Some(Token::LParen));
-                assert_eq!(seq.get(3), Some(Token::RParen));
-                assert_eq!(seq.get(4), Some(Token::LBrace));
-                assert_eq!(seq.get(5), Some(Token::RBrace));
+                // let seq = Sequence::new(tks);
+                assert_eq!(tks[0], Token::Type(Type::Int));
+                assert_eq!(tks[1], Token::Name("foo".to_owned()));
+                assert_eq!(tks[2], Token::LParen);
+                assert_eq!(tks[3], Token::RParen);
+                assert_eq!(tks[4], Token::LBrace);
+                assert_eq!(tks[5], Token::RBrace);
             }
             Err(_) => {
                 assert!(false, "Not Ok");

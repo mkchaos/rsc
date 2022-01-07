@@ -1,4 +1,4 @@
-use crate::core::{Token, Value, Type};
+use super::token::{Token, Value, Type};
 use std::rc::Rc;
 
 #[derive(Debug, Clone)]

@@ -1,4 +1,4 @@
-use super::Op;
+use super::op::Op;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Addr {

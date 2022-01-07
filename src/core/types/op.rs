@@ -1,5 +1,7 @@
-use crate::core::{FactorNd, SeqPack, Sequence, Token};
-use crate::pipeline::Parser;
+use super::seq::{SeqPack, Sequence};
+use super::token::Token;
+use super::nodes::FactorNd;
+use super::super::parser::Parser;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -95,7 +97,7 @@ fn eat_op(
     match op {
         Op::Paren => {
             let (seq, _) = seq.eat(Token::LParen)?;
-            let (seq, st) = get_calc_stack(seq)?;
+            let (seq, st) = _get_calc_stack(seq, max_level(), mp)?;
             let (seq, _) = seq.eat(Token::RParen)?;
             Some((seq, st))
         }
@@ -180,9 +182,87 @@ pub fn get_op_param_num(op: Op) -> usize {
 }
 
 pub fn calc_op_1(op: Op, a: i32) -> i32 {
-    a
+    match op {
+        Op::Paren => a,
+        Op::UnaryMinus => -a,
+        Op::Not => {
+            if a != 0 {
+                0
+            } else {
+                1
+            }
+        }
+        _ => {
+            panic!("{:?} is not op_1", op);
+        }
+    }
 }
 
 pub fn calc_op_2(op: Op, a: i32, b: i32) -> i32 {
-    a
+    match op {
+        Op::Multiply => a * b,
+        Op::Divide => a / b,
+        Op::Modulo => a % b,
+        Op::Add => a + b,
+        Op::Minus => a - b,
+        Op::GreaterEq => {
+            if a >= b {
+                1
+            } else {
+                0
+            }
+        }
+        Op::GreaterThan => {
+            if a > b {
+                1
+            } else {
+                0
+            }
+        }
+        Op::LessEq => {
+            if a <= b {
+                1
+            } else {
+                0
+            }
+        }
+        Op::LessThan => {
+            if a < b {
+                1
+            } else {
+                0
+            }
+        }
+        Op::Eq => {
+            if a == b {
+                1
+            } else {
+                0
+            }
+        }
+        Op::NotEq => {
+            if a != b {
+                1
+            } else {
+                0
+            }
+        }
+        Op::And => {
+            if a != 0 && b != 0 {
+                1
+            } else {
+                0
+            }
+        }
+        Op::Or => {
+            if a != 0 || b != 0 {
+                1
+            } else {
+                0
+            }
+        }
+        _ => {
+            panic!("{:?} is not op_2", op);
+        }
+    }
 }

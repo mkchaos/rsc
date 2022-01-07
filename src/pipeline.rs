@@ -1,9 +1,7 @@
-mod lexer;
-mod parser;
-mod semantic_analyzer;
-mod compiler;
 
-pub use compiler::Compiler;
-pub use parser::Parser;
-pub use semantic_analyzer::SemanticAnalyzer;
-pub use lexer::lexer;
+
+use std::fs;
+
+fn load_code_from_file(path: &str) -> String {
+    fs::read_to_string(path).expect("No file")
+}

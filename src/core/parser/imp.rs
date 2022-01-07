@@ -1,8 +1,6 @@
-use crate::core::*;
-
-pub trait Parser: Sized {
-    fn parse(seq: Sequence) -> SeqPack<Self>;
-}
+use crate::core::types::nodes::*;
+use crate::core::types::{SeqPack, Sequence, Token, get_calc_stack};
+use super::Parser;
 
 impl Parser for FactorNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {

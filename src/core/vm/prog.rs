@@ -5,17 +5,14 @@ use std::collections::HashMap;
 
 
 pub struct ProgContext {
-    global_codes: Vec<Code>,
-    func_codes: Vec<Code>,
+    codes: Vec<Code>,
     // var_cxts: HashMap<usize, VarContext>,
 }
 
 impl ProgContext {
     pub fn new(cxt: &SemanticContext) -> Self {
         ProgContext {
-            global_codes: Vec::new(),
-            func_codes: Vec::new(),
-            // var_cxts: cxt.freeze(),
+            codes: Vec::new(),
         }
     }
 
@@ -23,15 +20,8 @@ impl ProgContext {
 
     // }
 
-    pub fn get_codes(&mut self) -> &mut Vec<Code> {
-        &mut self.func_codes
-    }
-
     pub fn debug(&self) {
-        for it in self.global_codes.iter() {
-            println!("{:?}", it);
-        }
-        for it in self.func_codes.iter() {
+        for it in self.codes.iter() {
             println!("{:?}", it);
         }
     }
