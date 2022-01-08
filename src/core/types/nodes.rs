@@ -1,4 +1,5 @@
-use super::op::CalcItem;
+use super::err::ErrKind;
+use super::op::{CalcItem, get_op_param_num};
 use super::token::{Type, Value};
 use std::cell::RefCell;
 
@@ -17,6 +18,11 @@ pub struct ExprNd {
 impl ExprNd {
     pub fn new(stack: Vec<CalcItem>) -> Self {
         ExprNd { stack: stack }
+    }
+
+    pub fn retrieve_const(&self) -> Result<Value, ErrKind> {
+        
+        Err(ErrKind::TypeErr)
     }
 }
 
@@ -134,6 +140,15 @@ impl FuncNd {
             }
         }
         return true;
+    }
+
+    pub fn func_ty(&self) -> Type {
+        let mut ty_vec = Vec::new();
+        for (t, _) in self.params.iter() {
+            ty_vec.push(t.clone());
+        }
+        ty_vec.push(self.ret_ty.clone());
+        Type::Func(ty_vec)
     }
 }
 

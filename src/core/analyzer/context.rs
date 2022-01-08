@@ -2,7 +2,7 @@ use crate::core::types::{ErrKind, FuncInfo, Layout, ScopeInfo, Type, VarInfo};
 use std::collections::HashMap;
 
 pub struct Context {
-    names: HashMap<String, Vec<u32>>,
+    names: HashMap<String, Vec<(u32, u32)>>, // (scope_id, id)
     mem_layout: Vec<Layout>,
     vars: HashMap<u32, VarInfo>,
     scopes: HashMap<u32, ScopeInfo>,
@@ -56,30 +56,34 @@ impl Context {
     }
 
     fn declare(&mut self, name: &str, sz: usize) -> Result<u32, ErrKind> {
+        let scope_id = self.get_current_scope_id();
         if self.names.contains_key(name) {
             let ids = self.names.get(name).unwrap();
-            if ids.contains(&self.get_current_scope_id()) {
+            if ids.iter().any(|(sid, _)| *sid == scope_id) {
                 Err(ErrKind::ReDeclare)
             } else {
                 let id = self.new_mem_layout();
                 self.cur_offset += sz;
                 self.mem_layout.last_mut().unwrap().end(self.cur_offset);
-                self.names.get_mut(name).unwrap().push(id);
+                self.names.get_mut(name).unwrap().push((scope_id, id));
                 Ok(id)
             }
         } else {
             let id = self.new_mem_layout();
             self.cur_offset += sz;
             self.mem_layout.last_mut().unwrap().end(self.cur_offset);
-            self.names.insert(name.to_owned(), vec![id]);
+            self.names.insert(name.to_owned(), vec![(scope_id, id)]);
             Ok(id)
         }
     }
 
-    pub fn get_fn_type(&self, id: u32) -> Result<Type, ErrKind> {
+    pub fn get_type_by_id(&self, id: u32) -> Result<Type, ErrKind> {
         match self.funcs.get(&id) {
             Some(f) => Ok(f.ty.clone()),
-            None => Err(ErrKind::NoDeclare),
+            None => match self.vars.get(&id) {
+                Some(v) => Ok(v.ty.clone()),
+                None => Err(ErrKind::NoDeclare)
+            },
         }
     }
 
@@ -87,8 +91,10 @@ impl Context {
         if self.names.contains_key(name) {
             let ids = self.names.get(name).unwrap();
             for id in self.scope_stack.iter() {
-                if ids.contains(id) {
-                    return Ok(*id);
+                for (sid, vid) in ids.iter() {
+                    if *sid == *id {
+                        return Ok(*vid);
+                    }
                 }
             }
             Err(ErrKind::NoDeclare)
@@ -97,7 +103,7 @@ impl Context {
         }
     }
 
-    pub fn declare_var(&mut self, name: &str, sz: usize) -> Result<u32, ErrKind> {
+    pub fn declare_var(&mut self, name: &str, ty: &Type) -> Result<u32, ErrKind> {
         let id = self.declare(name, 0)?;
         self.vars.insert(
             id,
@@ -105,7 +111,7 @@ impl Context {
                 id: id,
                 scope_id: self.get_current_scope_id(),
                 func_id: self.cur_func_id,
-                size: sz,
+                ty: ty.clone(),
             },
         );
         Ok(id)
@@ -124,7 +130,9 @@ impl Context {
                 let finfo = self.funcs.get_mut(&id).unwrap();
                 if finfo.has_impl {
                     Err(ErrKind::ReImpl)
-                } else {
+                } else if finfo.ty != ty.clone() {
+                    Err(ErrKind::TypeErr)
+                } else {   
                     finfo.has_impl = true;
                     Ok(id)
                 }
@@ -146,7 +154,7 @@ pub struct SemanticInfo {
 }
 
 impl SemanticInfo {
-    pub fn new(cxt: &Context) -> Self {
+    pub fn new(cxt: Context) -> Self {
         SemanticInfo {
             mem_layout: cxt.mem_layout,
             vars: cxt.vars,

@@ -22,7 +22,13 @@ pub struct VarInfo {
     pub id: u32,
     pub scope_id: u32,
     pub func_id: u32,
-    pub size: usize,
+    pub ty: Type,
+}
+
+impl VarInfo {
+    pub fn is_global(&self) -> bool {
+        self.scope_id == 0
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

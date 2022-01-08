@@ -1,5 +1,6 @@
 use super::seq::{SeqPack, Sequence};
-use super::token::Token;
+use super::token::{Type, Token};
+use super::err::ErrKind;
 use super::nodes::FactorNd;
 use super::super::parser::Parser;
 use strum::IntoEnumIterator;
@@ -265,4 +266,9 @@ pub fn calc_op_2(op: Op, a: i32, b: i32) -> i32 {
             panic!("{:?} is not op_2", op);
         }
     }
+}
+
+
+pub fn retrieve_type(st: &[CalcItem]) -> Result<Type, ErrKind> {
+    Err(ErrKind::TypeErr)
 }

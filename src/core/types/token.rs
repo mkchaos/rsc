@@ -1,5 +1,6 @@
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Value {
+    Void,
     Int(i32),
 }
 
@@ -10,14 +11,34 @@ pub enum Type {
     Func(Vec<Type>),
 }
 
-// pub fn get_value_type(v: Value) -> Type {
-//     match v {
-//         Value::Int(_) => Type::Int,
-//     }
-// }
+pub fn match_value_type(v: Value, t: Type) -> bool {
+    match (t, v) {
+        (Type::Int, Value::Int(_)) => true,
+        (Type::Void, Value::Void) => true,
+        _ => false,
+    }
+}
 
-pub fn get_type_size(_ty: Type) -> usize {
-    1
+pub fn get_value_type(v: Value) -> Type {
+    match v {
+        Value::Int(_) => Type::Int,
+        Value::Void => Type::Void,
+    }
+}
+
+pub fn get_default_value(ty: Type) -> Value {
+    match ty {
+        Type::Int => Value::Int(0),
+        Type::Void => Value::Void,
+        _ => panic!("no default value"),
+    }
+}
+
+pub fn get_type_size(ty: Type) -> usize {
+    match ty {
+        Type::Int => 1,
+        _ => 0,
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
