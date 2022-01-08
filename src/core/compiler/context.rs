@@ -1,4 +1,4 @@
-use crate::core::analyzer::SemanticInfo;
+use crate::core::analyzer::Semantic;
 use crate::core::types::{Code, CodeAddr, Layout, MemAddr, Type, Value};
 
 use std::collections::HashMap;
@@ -47,14 +47,14 @@ impl Program {
 
 pub struct Context {
     code_layout: HashMap<u32, Layout>,
-    s_info: SemanticInfo,
+    s_info: Semantic,
     codes: Vec<Code>,
     memory: Vec<i32>,
     func_id: u32,
 }
 
 impl Context {
-    pub fn new(info: SemanticInfo) -> Self {
+    pub fn new(info: Semantic) -> Self {
         Context {
             code_layout: HashMap::new(),
             s_info: info,

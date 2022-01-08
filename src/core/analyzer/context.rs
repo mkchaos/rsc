@@ -145,14 +145,14 @@ impl Context {
     }
 }
 
-pub struct SemanticInfo {
+pub struct Semantic {
     pub mem_layout: Vec<Layout>,
     pub vars: HashMap<u32, VarInfo>,
     pub funcs: HashMap<u32, FuncInfo>,
     pub main_func_id: u32,
 }
 
-impl SemanticInfo {
+impl Semantic {
     pub fn new(cxt: Context) -> Result<Self, ErrKind> {
         let main_id = match cxt.fetch("main") {
             Ok(id) => id,
@@ -179,7 +179,7 @@ impl SemanticInfo {
         for l in mem_layout.iter() {
             println!("layout: {:?}", l.clone());
         }
-        Ok(SemanticInfo {
+        Ok(Semantic {
             mem_layout: mem_layout,
             vars: cxt.vars,
             funcs: cxt.funcs,

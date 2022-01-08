@@ -170,7 +170,7 @@ pub struct ContinueNd {}
 
 #[derive(Debug, Clone)]
 pub struct ReturnNd {
-    pub expr: Option<ExprNd>
+    pub expr: Option<ExprNd>,
 }
 
 #[derive(Debug, Clone)]
@@ -194,11 +194,23 @@ pub enum ItemNd {
 #[derive(Debug, Clone)]
 pub struct BlockNd {
     pub items: Vec<ItemNd>,
+    pub id: RefCell<u32>,
 }
 
 impl BlockNd {
     pub fn new(items: Vec<ItemNd>) -> Self {
-        BlockNd { items: items }
+        BlockNd {
+            items: items,
+            id: RefCell::new(0),
+        }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        *self.id.borrow()
+    }
+
+    pub fn set_id(&self, id: u32) {
+        *self.id.borrow_mut() = id;
     }
 }
 

@@ -1,10 +1,10 @@
 mod imp;
-mod prog;
+mod context;
 
 use super::analyzer::{analyze, Analyzer};
 use crate::core::types::ErrKind;
-use prog::Context;
-pub use prog::Program;
+use context::Context;
+pub use context::Program;
 
 pub trait Compiler: Analyzer {
     fn compile(&self, prog: &mut Context);

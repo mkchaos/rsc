@@ -4,13 +4,13 @@ mod imp;
 use super::parser::{parse, Parser};
 use super::types::{ErrKind, RootNd, Type};
 use context::Context;
-pub use context::SemanticInfo;
+pub use context::Semantic;
 
 pub trait Analyzer: Parser {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind>;
 }
 
-pub fn analyze(code: &str) -> Result<(RootNd, SemanticInfo), ErrKind> {
+pub fn analyze(code: &str) -> Result<(RootNd, Semantic), ErrKind> {
     let nd_res = parse::<RootNd>(code);
     if nd_res.is_err() {
         return Err(ErrKind::ParseErr);
@@ -18,7 +18,7 @@ pub fn analyze(code: &str) -> Result<(RootNd, SemanticInfo), ErrKind> {
     let nd = nd_res.unwrap();
     let mut cxt = Context::new();
     nd.analyze(&mut cxt)?;
-    Ok((nd, SemanticInfo::new(cxt)?))
+    Ok((nd, Semantic::new(cxt)?))
 }
 
 #[cfg(test)]
