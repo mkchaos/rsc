@@ -8,6 +8,7 @@ pub enum ErrKind {
     ReImpl,
     TypeErr,
     FormatErr,
+    GlobalNeedConst,
 
     StackOverFlow,
     DivideZero,

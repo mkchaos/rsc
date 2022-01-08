@@ -1,5 +1,4 @@
-use super::err::ErrKind;
-use super::op::{CalcItem, get_op_param_num};
+use super::op::{calc_op_1, calc_op_2, get_op_param_num, CalcItem};
 use super::token::{Type, Value};
 use std::cell::RefCell;
 
@@ -20,9 +19,40 @@ impl ExprNd {
         ExprNd { stack: stack }
     }
 
-    pub fn retrieve_const(&self) -> Result<Value, ErrKind> {
-        
-        Err(ErrKind::TypeErr)
+    pub fn try_retrieve_const(&self) -> Option<i32> {
+        let mut st = Vec::new();
+        for it in self.stack.iter() {
+            match it {
+                CalcItem::Op(op) => {
+                    let num = get_op_param_num(op.clone());
+                    match num {
+                        1 => {
+                            let a = st.pop().unwrap();
+                            st.push(calc_op_1(op.clone(), a));
+                        }
+                        2 => {
+                            let b = st.pop().unwrap();
+                            let a = st.pop().unwrap();
+                            st.push(calc_op_2(op.clone(), a, b));
+                        }
+                        _ => {
+                            panic!("not support yet");
+                        }
+                    }
+                }
+                CalcItem::Factor(FactorNd::Value(Value::Int(num))) => {
+                    st.push(*num);
+                }
+                _ => {
+                    return None;
+                }
+            }
+        }
+        if st.len() != 1 {
+            None
+        } else {
+            Some(st.pop().unwrap())
+        }
     }
 }
 
@@ -74,6 +104,14 @@ impl DeclareNd {
             ty: ty,
             var: v,
             expr: ex,
+        }
+    }
+
+    pub fn try_retrieve_const(&self) -> Option<i32> {
+        if self.expr.is_none() {
+            Some(0)
+        } else {
+            self.expr.as_ref().unwrap().try_retrieve_const()
         }
     }
 }

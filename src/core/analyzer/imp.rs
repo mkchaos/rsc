@@ -1,9 +1,7 @@
 use super::context::Context;
 use super::Analyzer;
 use crate::core::types::nodes::*;
-use crate::core::types::{
-    get_op_param_num, get_type_size, get_value_type, match_value_type, CalcItem, ErrKind, Type,
-};
+use crate::core::types::{get_op_param_num, get_value_type, CalcItem, ErrKind, Type};
 
 impl Analyzer for FactorNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
@@ -27,6 +25,7 @@ impl Analyzer for ExprNd {
                             return Err(ErrKind::TypeErr);
                         }
                     }
+                    st.push(Type::Int);
                 }
                 CalcItem::Factor(f) => {
                     st.push(f.analyze(cxt)?);
@@ -51,16 +50,21 @@ impl Analyzer for VarNd {
 
 impl Analyzer for AssignNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        self.expr.analyze(cxt)?;
-        self.var.analyze(cxt)?;
-        Ok(Type::Void)
+        let ty = self.expr.analyze(cxt)?;
+        if ty != self.var.analyze(cxt)? {
+            Err(ErrKind::TypeErr)
+        } else {
+            Ok(Type::Void)
+        }
     }
 }
 
 impl Analyzer for DeclareNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
         if self.expr.is_some() {
-            self.expr.as_ref().unwrap().analyze(cxt)?;
+            if self.ty != self.expr.as_ref().unwrap().analyze(cxt)? {
+                return Err(ErrKind::TypeErr);
+            }
         }
         let id = cxt.declare_var(&self.var.name, &self.ty)?;
         self.var.set_id(id);
@@ -153,7 +157,14 @@ impl Analyzer for GItemNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
         match self {
             GItemNd::Func(n) => n.analyze(cxt),
-            GItemNd::Declare(n) => n.analyze(cxt),
+            GItemNd::Declare(n) => {
+                n.analyze(cxt)?;
+                if n.ty == Type::Int && n.try_retrieve_const().is_none() {
+                    Err(ErrKind::GlobalNeedConst)
+                } else {
+                    Ok(Type::Void)
+                }
+            }
         }
     }
 }

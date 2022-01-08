@@ -28,8 +28,9 @@ mod tests {
 
     #[test]
     fn test_analyze() {
-        let code = load_code_from_file("example/1.c");
+        let code = load_code_from_file("example/test_a_1.c");
         let res = analyze(&code);
+        // assert!(res.is_ok());
         if res.is_err() {
             println!("{:?}", res.err());
         } else {
