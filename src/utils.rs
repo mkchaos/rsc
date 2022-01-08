@@ -4,8 +4,8 @@ use std::str;
 fn preprocess_code_line(code: String) -> String {
     let bs = code.as_bytes();
     for i in 1..bs.len() {
-        if bs[i] == b'/' && bs[i-1] == b'/' {
-            let s = match str::from_utf8(&bs[..i-1]) {
+        if bs[i] == b'/' && bs[i - 1] == b'/' {
+            match str::from_utf8(&bs[..i - 1]) {
                 Ok(v) => return v.to_owned(),
                 Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
             };
@@ -19,7 +19,7 @@ fn preprocess_code(code: String) -> String {
     for s in code.split('\n') {
         vec.push(preprocess_code_line(s.to_owned()));
     }
-    vec.connect("\n")
+    vec.join("\n")
 }
 
 #[allow(dead_code)]

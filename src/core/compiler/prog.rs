@@ -1,5 +1,5 @@
 use crate::core::analyzer::SemanticInfo;
-use crate::core::types::{Code, CodeAddr, Layout, MemAddr, Op, Token, Type, Value};
+use crate::core::types::{Code, CodeAddr, Layout, MemAddr, Type, Value};
 
 use std::collections::HashMap;
 

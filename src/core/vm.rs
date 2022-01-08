@@ -61,10 +61,6 @@ impl VM {
                     return Err(ErrKind::StackOverFlow);
                 }
                 let v = self.getv(addr);
-                // println!(
-                //     "psuh {:?} {:?} {:?} {:?} {:?}",
-                //     v, addr, self.pd, self.datas[2], self.ps
-                // );
                 self.datas[self.ps] = v;
                 self.ps += 1;
             }
@@ -77,12 +73,6 @@ impl VM {
                     self.datas[self.ps - 1] = calc_op_1(op, self.datas[self.ps - 1])?;
                 }
                 2 => {
-                    // println!(
-                    //     "Calc {:?} {:?} {:?}",
-                    //     op,
-                    //     self.datas[self.ps - 2],
-                    //     self.datas[self.ps - 1]
-                    // );
                     self.datas[self.ps - 2] =
                         calc_op_2(op, self.datas[self.ps - 2], self.datas[self.ps - 1])?;
                     self.ps -= 1;

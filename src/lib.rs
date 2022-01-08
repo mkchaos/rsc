@@ -1,6 +1,17 @@
 mod core;
 mod utils;
 
+use crate::utils::load_code_from_file;
+use crate::core::{compile, VM, ErrKind};
+
+pub fn compile_and_run(path: &str) -> Result<(), ErrKind> {
+    let code = load_code_from_file(path);
+    let prog = compile(&code)?;
+    let mut vm = VM::new(1000, prog);
+    vm.execute()?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

@@ -2,7 +2,7 @@ use super::super::parser::Parser;
 use super::err::ErrKind;
 use super::nodes::FactorNd;
 use super::seq::{SeqPack, Sequence};
-use super::token::{Token, Type};
+use super::token::Token;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -278,8 +278,4 @@ pub fn calc_op_2(op: Op, a: i32, b: i32) -> Result<i32, ErrKind> {
             panic!("{:?} is not op_2", op);
         }
     }
-}
-
-pub fn retrieve_type(st: &[CalcItem]) -> Result<Type, ErrKind> {
-    Err(ErrKind::TypeErr)
 }

@@ -12,6 +12,10 @@ int main()
     int a = foo(1);
     int c;
     int b = bb + a + c;
+    {
+        int x = 3;
+        x;
+    }
     b;
     // 1+2+3;
 }

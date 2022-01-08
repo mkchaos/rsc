@@ -11,6 +11,7 @@ pub enum Type {
     Func(Vec<Type>),
 }
 
+#[allow(unused)]
 pub fn match_value_type(v: Value, t: Type) -> bool {
     match (t, v) {
         (Type::Int, Value::Int(_)) => true,
@@ -26,6 +27,7 @@ pub fn get_value_type(v: Value) -> Type {
     }
 }
 
+#[allow(unused)]
 pub fn get_default_value(ty: Type) -> Value {
     match ty {
         Type::Int => Value::Int(0),
