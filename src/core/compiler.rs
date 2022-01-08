@@ -16,3 +16,23 @@ pub fn compile(code: &str) -> Result<Program, ErrKind> {
     nd.compile(&mut cxt);
     Ok(Program::new(cxt))
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::utils::load_code_from_file;
+
+    #[test]
+    fn test_compile() {
+        let code = load_code_from_file("example/test_c_1.c");
+        let prog = super::compile(&code);
+        if prog.is_err() {
+            println!("{:?}", prog.err());
+        } else {
+            let prog = prog.unwrap();
+            for c in prog.codes {
+                println!("{:?}", c);
+            }
+            println!("Big ok");
+        }
+    }
+}

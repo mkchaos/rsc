@@ -10,9 +10,9 @@ pub enum MemAddr {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum CodeAddr {
     Direct(usize),
-    Offset(usize),
-    Start(u32), // scope
-    End(u32),
+    Offset(isize),
+    NameStart(u32), // scope
+    NameEnd(u32),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

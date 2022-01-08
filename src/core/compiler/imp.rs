@@ -1,23 +1,40 @@
 use super::{Compiler, Context};
 use crate::core::types::nodes::*;
-use crate::core::types::{only_pop_code, Code, MemAddr};
+use crate::core::types::{only_pop_code, CalcItem, Code, MemAddr, Type, Value};
 
 impl Compiler for FactorNd {
     fn compile(&self, cxt: &mut Context) {
         match self {
             FactorNd::Var(n) => n.compile(cxt),
-            FactorNd::Value(v) => {}
+            FactorNd::Value(v) => {
+                if let Value::Int(num) = v {
+                    cxt.add_code(Code::Push(MemAddr::Value(*num)));
+                }
+            }
             FactorNd::Func(n) => n.compile(cxt),
         }
     }
 }
 
 impl Compiler for ExprNd {
-    fn compile(&self, cxt: &mut Context) {}
+    fn compile(&self, cxt: &mut Context) {
+        for it in self.stack.iter() {
+            match it {
+                CalcItem::Op(op) => {
+                    cxt.add_code(Code::Op(op.clone()));
+                }
+                CalcItem::Factor(f) => {
+                    f.compile(cxt);
+                }
+            }
+        }
+    }
 }
 
 impl Compiler for VarNd {
-    fn compile(&self, cxt: &mut Context) {} // Not Need
+    fn compile(&self, cxt: &mut Context) {
+        cxt.push(self.get_id());
+    }
 }
 
 impl Compiler for AssignNd {
@@ -92,6 +109,7 @@ impl Compiler for FuncNd {
 impl Compiler for FuncCallNd {
     fn compile(&self, cxt: &mut Context) {
         let id = self.var.get_id();
+        println!("Call {}", id);
         cxt.call(id);
         for p in self.params.iter() {
             p.compile(cxt);
@@ -105,6 +123,10 @@ impl Compiler for GItemNd {
             GItemNd::Func(n) => n.compile(cxt),
             GItemNd::Declare(n) => {
                 // add memory
+                if n.ty == Type::Int {
+                    let v = n.try_retrieve_const().unwrap();
+                    cxt.add_memory(v);
+                }
             }
         }
     }

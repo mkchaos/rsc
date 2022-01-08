@@ -134,6 +134,7 @@ impl Analyzer for FuncCallNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
         let name = &self.var.name;
         let id = cxt.fetch(name)?;
+        self.var.set_id(id);
         let ty = cxt.get_type_by_id(id)?;
         match ty {
             Type::Func(v) => {

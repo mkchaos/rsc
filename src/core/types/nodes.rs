@@ -19,6 +19,17 @@ impl ExprNd {
         ExprNd { stack: stack }
     }
 
+    pub fn try_to_var(&self) -> Option<VarNd> {
+        if self.stack.len() != 1 {
+            None
+        } else {
+            match self.stack[0].clone() {
+                CalcItem::Factor(FactorNd::Var(v)) => Some(v),
+                _ => None,
+            }
+        }
+    }
+
     pub fn try_retrieve_const(&self) -> Option<i32> {
         let mut st = Vec::new();
         for it in self.stack.iter() {

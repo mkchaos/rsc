@@ -12,7 +12,6 @@ pub struct Context {
     cur_func_id: u32,
 }
 
-
 impl Context {
     pub fn new() -> Self {
         let mut cxt = Context {
@@ -82,7 +81,7 @@ impl Context {
             Some(f) => Ok(f.ty.clone()),
             None => match self.vars.get(&id) {
                 Some(v) => Ok(v.ty.clone()),
-                None => Err(ErrKind::NoDeclare)
+                None => Err(ErrKind::NoDeclare),
             },
         }
     }
@@ -132,7 +131,7 @@ impl Context {
                     Err(ErrKind::ReImpl)
                 } else if finfo.ty != ty.clone() {
                     Err(ErrKind::TypeErr)
-                } else {   
+                } else {
                     finfo.has_impl = true;
                     Ok(id)
                 }
@@ -147,18 +146,23 @@ impl Context {
 }
 
 pub struct SemanticInfo {
-    mem_layout: Vec<Layout>,
-    vars: HashMap<u32, VarInfo>,
-    scopes: HashMap<u32, ScopeInfo>,
-    funcs: HashMap<u32, FuncInfo>,
+    pub mem_layout: Vec<Layout>,
+    pub vars: HashMap<u32, VarInfo>,
+    pub funcs: HashMap<u32, FuncInfo>,
 }
 
 impl SemanticInfo {
     pub fn new(cxt: Context) -> Self {
+        let mut mem_layout = cxt.mem_layout;
+        for (_, v) in cxt.vars.iter() {
+            if !v.is_global() {
+                let off = mem_layout[v.func_id as usize].offset;
+                mem_layout[v.id as usize].offset -= off;
+            }
+        }
         SemanticInfo {
-            mem_layout: cxt.mem_layout,
+            mem_layout: mem_layout,
             vars: cxt.vars,
-            scopes: cxt.scopes,
             funcs: cxt.funcs,
         }
     }

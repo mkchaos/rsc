@@ -1,6 +1,6 @@
-use crate::core::types::nodes::*;
-use crate::core::types::{SeqPack, Sequence, Token, get_calc_stack};
 use super::Parser;
+use crate::core::types::nodes::*;
+use crate::core::types::{get_calc_stack, SeqPack, Sequence, Token};
 
 impl Parser for FactorNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
@@ -67,11 +67,11 @@ impl Parser for StmtNd {
         }
         if let Some((seq, n)) = ExprNd::parse(seq.clone()) {
             let (seq, _) = seq.eat(Token::Semicolon)?;
-            return Some((seq, StmtNd::Expr(n)));
-        }
-        if let Some((seq, n)) = VarNd::parse(seq.clone()) {
-            let (seq, _) = seq.eat(Token::Semicolon)?;
-            return Some((seq, StmtNd::Print(n)));
+            let vn = n.try_to_var();
+            return match vn {
+                Some(v) => Some((seq, StmtNd::Print(v))),
+                None => Some((seq, StmtNd::Expr(n))),
+            };
         }
         let (seq, _) = seq.eat(Token::Semicolon)?;
         Some((seq, StmtNd::Empty))
