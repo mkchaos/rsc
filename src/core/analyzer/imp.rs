@@ -89,6 +89,7 @@ impl Analyzer for ItemNd {
         match self {
             ItemNd::Block(n) => n.analyze(cxt),
             ItemNd::Stmt(n) => n.analyze(cxt),
+            _ => Ok(Type::Void)
         }
     }
 }

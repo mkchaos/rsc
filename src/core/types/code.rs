@@ -11,7 +11,6 @@ pub enum MemAddr {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum CodeAddr {
     Direct(usize),
-    // Offset(isize),
     NameStart(u32), // scope
     NameEnd(u32),
 }
@@ -26,7 +25,6 @@ pub enum Code {
     CondJump(CodeAddr),
     Print,
     Ret(Value),
-    Exit,
 }
 
 pub fn only_pop_code() -> Code {

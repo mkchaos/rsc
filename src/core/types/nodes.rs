@@ -163,6 +163,17 @@ pub struct WhileNd {
 }
 
 #[derive(Debug, Clone)]
+pub struct BreakNd {}
+
+#[derive(Debug, Clone)]
+pub struct ContinueNd {}
+
+#[derive(Debug, Clone)]
+pub struct ReturnNd {
+    pub expr: Option<ExprNd>
+}
+
+#[derive(Debug, Clone)]
 pub enum StmtNd {
     Assign(AssignNd),
     Declare(DeclareNd),
@@ -175,6 +186,9 @@ pub enum StmtNd {
 pub enum ItemNd {
     Stmt(StmtNd),
     Block(BlockNd),
+    Return(ReturnNd),
+    Continue(ContinueNd),
+    Break(BreakNd),
 }
 
 #[derive(Debug, Clone)]

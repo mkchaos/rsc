@@ -91,4 +91,23 @@ mod tests {
         let parse_res = parse::<WhileNd>(code);
         parse_res.unwrap();
     }
+
+    #[test]
+    fn test_parse_cond() {
+        let code = "continue;";
+        let parse_res = parse::<ContinueNd>(code);
+        parse_res.unwrap();
+        let code = "break;";
+        let parse_res = parse::<BreakNd>(code);
+        parse_res.unwrap();
+        let code = "return;";
+        let parse_res = parse::<ReturnNd>(code);
+        parse_res.unwrap();
+        let code = "return 0;";
+        let parse_res = parse::<ReturnNd>(code);
+        parse_res.unwrap();
+        let code = "if (1) return 0;";
+        let parse_res = parse::<IfNd>(code);
+        parse_res.unwrap();
+    }
 }

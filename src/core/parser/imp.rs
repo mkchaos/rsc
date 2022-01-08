@@ -94,6 +94,35 @@ impl Parser for WhileNd {
     }
 }
 
+impl Parser for BreakNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let (seq, _) = seq.eat(Token::Break)?;
+        let (seq, _) = seq.eat(Token::Semicolon)?;
+        Some((seq, BreakNd {}))
+    }
+}
+
+impl Parser for ContinueNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let (seq, _) = seq.eat(Token::Continue)?;
+        let (seq, _) = seq.eat(Token::Semicolon)?;
+        Some((seq, ContinueNd {}))
+    }
+}
+
+impl Parser for ReturnNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let (seq, _) = seq.eat(Token::Return)?;
+        if let Some((s, n)) = ExprNd::parse(seq.clone()) {
+            let (seq, _) = s.eat(Token::Semicolon)?;
+            Some((seq, ReturnNd { expr: Some(n) }))
+        } else {
+            let (seq, _) = seq.eat(Token::Semicolon)?;
+            Some((seq, ReturnNd { expr: None }))
+        }
+    }
+}
+
 impl Parser for StmtNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
         if let Some((seq, n)) = DeclareNd::parse(seq.clone()) {
@@ -124,6 +153,15 @@ impl Parser for ItemNd {
         }
         if let Some((seq, n)) = StmtNd::parse(seq.clone()) {
             return Some((seq, ItemNd::Stmt(n)));
+        }
+        if let Some((seq, n)) = ReturnNd::parse(seq.clone()) {
+            return Some((seq, ItemNd::Return(n)));
+        }
+        if let Some((seq, n)) = ContinueNd::parse(seq.clone()) {
+            return Some((seq, ItemNd::Continue(n)));
+        }
+        if let Some((seq, n)) = BreakNd::parse(seq.clone()) {
+            return Some((seq, ItemNd::Break(n)));
         }
         None
     }

@@ -121,9 +121,6 @@ impl VM {
                     }
                 }
             }
-            Code::Exit => {
-                self.stop = true;
-            }
         }
         Ok(())
     }

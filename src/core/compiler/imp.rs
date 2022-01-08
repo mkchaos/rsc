@@ -83,6 +83,7 @@ impl Compiler for ItemNd {
         match self {
             ItemNd::Block(n) => n.compile(cxt),
             ItemNd::Stmt(n) => n.compile(cxt),
+            _ => {}
         }
     }
 }
