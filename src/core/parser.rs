@@ -71,4 +71,24 @@ mod tests {
         let parse_res = parse::<BlockNd>(code);
         parse_res.unwrap();
     }
+
+    #[test]
+    fn test_parse_if_else() {
+        let code = "if(1){}";
+        let parse_res = parse::<IfNd>(code);
+        parse_res.unwrap();
+        let code = "if(1){{}} else {}";
+        let parse_res = parse::<IfNd>(code);
+        parse_res.unwrap();
+        let code = "if(1){{}} else if(2) {}";
+        let parse_res = parse::<IfNd>(code);
+        parse_res.unwrap();
+    }
+
+    #[test]
+    fn test_parse_while() {
+        let code = "while(1){}";
+        let parse_res = parse::<WhileNd>(code);
+        parse_res.unwrap();
+    }
 }

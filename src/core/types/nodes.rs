@@ -134,6 +134,35 @@ impl DeclareNd {
 }
 
 #[derive(Debug, Clone)]
+pub struct IfNd {
+    pub expr: ExprNd,
+    pub item: ItemNd,
+    pub els: Option<ElsNd>,
+}
+
+impl IfNd {
+    pub fn new(expr: ExprNd, item: ItemNd, els: Option<ElsNd>) -> Self {
+        IfNd {
+            expr: expr,
+            item: item,
+            els: els,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum ElsNd {
+    If(Box<IfNd>),
+    Item(ItemNd),
+}
+
+#[derive(Debug, Clone)]
+pub struct WhileNd {
+    pub expr: ExprNd,
+    pub item: ItemNd,
+}
+
+#[derive(Debug, Clone)]
 pub enum StmtNd {
     Assign(AssignNd),
     Declare(DeclareNd),

@@ -55,6 +55,45 @@ impl Parser for DeclareNd {
     }
 }
 
+impl Parser for IfNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let (seq, _) = seq.eat(Token::If)?;
+        let (seq, _) = seq.eat(Token::LParen)?;
+        let (seq, ex) = ExprNd::parse(seq)?;
+        let (seq, _) = seq.eat(Token::RParen)?;
+        let (seq, it) = ItemNd::parse(seq)?;
+        if seq.get(0) == Some(Token::Else) {
+            let (seq, els) = ElsNd::parse(seq)?;
+            Some((seq, IfNd::new(ex, it, Some(els))))
+        } else {
+            Some((seq, IfNd::new(ex, it, None)))
+        }
+    }
+}
+
+impl Parser for ElsNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let (seq, _) = seq.eat(Token::Else)?;
+        if let Some((s, n)) = IfNd::parse(seq.clone()) {
+            Some((s, ElsNd::If(Box::new(n))))
+        } else {
+            let (seq, it) = ItemNd::parse(seq.clone())?;
+            Some((seq, ElsNd::Item(it)))
+        }
+    }
+}
+
+impl Parser for WhileNd {
+    fn parse(seq: Sequence) -> SeqPack<Self> {
+        let (seq, _) = seq.eat(Token::While)?;
+        let (seq, _) = seq.eat(Token::LParen)?;
+        let (seq, ex) = ExprNd::parse(seq)?;
+        let (seq, _) = seq.eat(Token::RParen)?;
+        let (seq, it) = ItemNd::parse(seq)?;
+        Some((seq, WhileNd { expr: ex, item: it }))
+    }
+}
+
 impl Parser for StmtNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
         if let Some((seq, n)) = DeclareNd::parse(seq.clone()) {
