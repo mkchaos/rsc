@@ -28,7 +28,7 @@ impl Program {
         }
         for c in cxt.codes.iter() {
             let cc = match c {
-                Code::Call(addr) => Code::Call(link_address!(addr)),
+                Code::Call(addr, n) => Code::Call(link_address!(addr), *n),
                 Code::Jump(addr) => Code::Jump(link_address!(addr)),
                 Code::CondJump(addr) => Code::CondJump(link_address!(addr)),
                 _ => c.clone(),
@@ -73,7 +73,17 @@ impl Context {
     pub fn exit_func(&mut self) {
         self.exit(self.func_id);
         println!("Out {:?} {:?}", self.func_id, self.get_cur());
-        self.add_code(Code::Ret);
+        match self.s_info.funcs[&self.func_id].ty.clone() {
+            Type::Func(v) => {
+                let ret_ty = v.last().unwrap();
+                if ret_ty.clone() == Type::Int {
+                    self.add_code(Code::Ret(Value::Int(0)));
+                } else {
+                    self.add_code(Code::Ret(Value::Void));
+                }
+            }
+            _ => panic!("not func type"),
+        }
         self.func_id = 0;
     }
 
@@ -99,7 +109,7 @@ impl Context {
 
     fn get_var_addr(&self, id: u32) -> MemAddr {
         let global = self.s_info.vars[&id].is_global();
-        println!("Var addr {} {}",  self.s_info.vars[&id].scope_id, global);
+        println!("Var addr {} {}", self.s_info.vars[&id].scope_id, global);
         if global {
             MemAddr::Direct(self.s_info.mem_layout[id as usize].offset)
         } else {
@@ -118,7 +128,11 @@ impl Context {
     }
 
     pub fn call(&mut self, id: u32) {
-        let code = Code::Call(CodeAddr::NameStart(id));
+        let num = match self.s_info.funcs[&id].ty.clone() {
+            Type::Func(v) => v.len() - 1,
+            _ => panic!("Not func type"),
+        };
+        let code = Code::Call(CodeAddr::NameStart(id), num);
         self.codes.push(code);
     }
 

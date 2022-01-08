@@ -1,4 +1,5 @@
 use super::op::Op;
+use super::token::Value;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum MemAddr {
@@ -15,16 +16,16 @@ pub enum CodeAddr {
     NameEnd(u32),
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Code {
     Push(MemAddr),
     Pop(MemAddr),
     Op(Op),
-    Call(CodeAddr),
+    Call(CodeAddr, usize),
     Jump(CodeAddr),
     CondJump(CodeAddr),
     Print,
-    Ret,
+    Ret(Value),
     Exit,
 }
 

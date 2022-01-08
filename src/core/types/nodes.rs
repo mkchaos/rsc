@@ -39,12 +39,18 @@ impl ExprNd {
                     match num {
                         1 => {
                             let a = st.pop().unwrap();
-                            st.push(calc_op_1(op.clone(), a));
+                            match calc_op_1(op.clone(), a) {
+                                Ok(n) => st.push(n),
+                                Err(_) => return None,
+                            }
                         }
                         2 => {
                             let b = st.pop().unwrap();
                             let a = st.pop().unwrap();
-                            st.push(calc_op_2(op.clone(), a, b));
+                            match calc_op_2(op.clone(), a, b) {
+                                Ok(n) => st.push(n),
+                                Err(_) => return None,
+                            }
                         }
                         _ => {
                             panic!("not support yet");

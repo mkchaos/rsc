@@ -12,9 +12,6 @@ int main()
     int a = foo(1);
     int c;
     int b = bb + a + c;
-    a;
-    b = 23;
     b;
-    b+1;
     // 1+2+3;
 }

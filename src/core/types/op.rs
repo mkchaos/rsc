@@ -1,8 +1,8 @@
-use super::seq::{SeqPack, Sequence};
-use super::token::{Type, Token};
+use super::super::parser::Parser;
 use super::err::ErrKind;
 use super::nodes::FactorNd;
-use super::super::parser::Parser;
+use super::seq::{SeqPack, Sequence};
+use super::token::{Token, Type};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -182,15 +182,15 @@ pub fn get_op_param_num(op: Op) -> usize {
     LEVEL_OPS[level as usize].0 as usize
 }
 
-pub fn calc_op_1(op: Op, a: i32) -> i32 {
+pub fn calc_op_1(op: Op, a: i32) -> Result<i32, ErrKind> {
     match op {
-        Op::Paren => a,
-        Op::UnaryMinus => -a,
+        Op::Paren => Ok(a),
+        Op::UnaryMinus => Ok(-a),
         Op::Not => {
             if a != 0 {
-                0
+                Ok(0)
             } else {
-                1
+                Ok(1)
             }
         }
         _ => {
@@ -199,67 +199,79 @@ pub fn calc_op_1(op: Op, a: i32) -> i32 {
     }
 }
 
-pub fn calc_op_2(op: Op, a: i32, b: i32) -> i32 {
+pub fn calc_op_2(op: Op, a: i32, b: i32) -> Result<i32, ErrKind> {
     match op {
-        Op::Multiply => a * b,
-        Op::Divide => a / b,
-        Op::Modulo => a % b,
-        Op::Add => a + b,
-        Op::Minus => a - b,
+        Op::Multiply => Ok(a * b),
+        Op::Divide => {
+            if b == 0 {
+                Err(ErrKind::DivideZero)
+            } else {
+                Ok(a / b)
+            }
+        }
+        Op::Modulo => {
+            if b == 0 {
+                Err(ErrKind::DivideZero)
+            } else {
+                Ok(a % b)
+            }
+        }
+        Op::Add => Ok(a + b),
+        Op::Minus => Ok(a - b),
         Op::GreaterEq => {
             if a >= b {
-                1
+                Ok(1)
             } else {
-                0
+                Ok(0)
             }
         }
         Op::GreaterThan => {
             if a > b {
-                1
+                Ok(1)
             } else {
-                0
+                Ok(0)
             }
         }
         Op::LessEq => {
             if a <= b {
-                1
+                Ok(1)
             } else {
-                0
+                Ok(0)
             }
         }
         Op::LessThan => {
             if a < b {
-                1
+                Ok(1)
             } else {
-                0
+                Ok(0)
             }
         }
         Op::Eq => {
             if a == b {
-                1
+                Ok(1)
             } else {
-                0
+                Ok(0)
             }
         }
         Op::NotEq => {
             if a != b {
-                1
+                Ok(1)
             } else {
-                0
+                Ok(0)
             }
         }
         Op::And => {
             if a != 0 && b != 0 {
-                1
+                Ok(1)
             } else {
-                0
+                Ok(0)
             }
         }
         Op::Or => {
             if a != 0 || b != 0 {
-                1
+                Ok(1)
             } else {
-                0
+                Ok(0)
             }
         }
         _ => {
@@ -267,7 +279,6 @@ pub fn calc_op_2(op: Op, a: i32, b: i32) -> i32 {
         }
     }
 }
-
 
 pub fn retrieve_type(st: &[CalcItem]) -> Result<Type, ErrKind> {
     Err(ErrKind::TypeErr)

@@ -108,12 +108,11 @@ impl Compiler for FuncNd {
 
 impl Compiler for FuncCallNd {
     fn compile(&self, cxt: &mut Context) {
-        let id = self.var.get_id();
-        println!("Call {}", id);
-        cxt.call(id);
         for p in self.params.iter() {
             p.compile(cxt);
         }
+        let id = self.var.get_id();
+        cxt.call(id);
     }
 }
 
