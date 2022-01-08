@@ -6,6 +6,8 @@ pub enum ErrKind {
     ReDeclare,
     NoDeclare,
     ReImpl,
+    FuncNoImpl,
+    NoMainFunc,
     TypeErr,
     FormatErr,
     GlobalNeedConst,

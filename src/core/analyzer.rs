@@ -18,7 +18,7 @@ pub fn analyze(code: &str) -> Result<(RootNd, SemanticInfo), ErrKind> {
     let nd = nd_res.unwrap();
     let mut cxt = Context::new();
     nd.analyze(&mut cxt)?;
-    Ok((nd, SemanticInfo::new(cxt)))
+    Ok((nd, SemanticInfo::new(cxt)?))
 }
 
 #[cfg(test)]

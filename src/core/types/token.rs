@@ -132,7 +132,7 @@ fn get_name(word: &str) -> Option<Token> {
         if first && c.is_ascii_digit() {
             return None;
         }
-        if !c.is_ascii_alphabetic() && c != '_' {
+        if !c.is_ascii_alphanumeric() && c != '_' {
             return None;
         }
         first = false;

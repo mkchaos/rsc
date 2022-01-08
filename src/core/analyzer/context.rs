@@ -1,4 +1,4 @@
-use crate::core::types::{ErrKind, FuncInfo, Layout, ScopeInfo, Type, VarInfo};
+use crate::core::types::{ErrKind, FuncInfo, Layout, ScopeInfo, Type, VarInfo, get_type_size};
 use std::collections::HashMap;
 
 pub struct Context {
@@ -86,10 +86,10 @@ impl Context {
         }
     }
 
-    pub fn fetch(&mut self, name: &str) -> Result<u32, ErrKind> {
+    pub fn fetch(&self, name: &str) -> Result<u32, ErrKind> {
         if self.names.contains_key(name) {
             let ids = self.names.get(name).unwrap();
-            for id in self.scope_stack.iter() {
+            for id in self.scope_stack.iter().rev() {
                 for (sid, vid) in ids.iter() {
                     if *sid == *id {
                         return Ok(*vid);
@@ -103,7 +103,7 @@ impl Context {
     }
 
     pub fn declare_var(&mut self, name: &str, ty: &Type) -> Result<u32, ErrKind> {
-        let id = self.declare(name, 0)?;
+        let id = self.declare(name, get_type_size(ty.clone()))?;
         self.vars.insert(
             id,
             VarInfo {
@@ -149,10 +149,26 @@ pub struct SemanticInfo {
     pub mem_layout: Vec<Layout>,
     pub vars: HashMap<u32, VarInfo>,
     pub funcs: HashMap<u32, FuncInfo>,
+    pub main_func_id: u32,
 }
 
 impl SemanticInfo {
-    pub fn new(cxt: Context) -> Self {
+    pub fn new(cxt: Context) -> Result<Self, ErrKind> {
+        let main_id = match cxt.fetch("main") {
+            Ok(id) => id,
+            Err(_) => return Err(ErrKind::NoMainFunc),
+        };
+        let ty = cxt.get_type_by_id(main_id)?;
+        if ty != Type::Func(vec![Type::Int]) {
+            // main type error
+            return Err(ErrKind::TypeErr);
+        }
+        for (_, info) in cxt.funcs.iter() {
+            if !info.has_impl {
+                // no impl func
+                return Err(ErrKind::FuncNoImpl);
+            }
+        }
         let mut mem_layout = cxt.mem_layout;
         for (_, v) in cxt.vars.iter() {
             if !v.is_global() {
@@ -160,10 +176,14 @@ impl SemanticInfo {
                 mem_layout[v.id as usize].offset -= off;
             }
         }
-        SemanticInfo {
+        for l in mem_layout.iter() {
+            println!("layout: {:?}", l.clone());
+        }
+        Ok(SemanticInfo {
             mem_layout: mem_layout,
             vars: cxt.vars,
             funcs: cxt.funcs,
-        }
+            main_func_id: main_id,
+        })
     }
 }

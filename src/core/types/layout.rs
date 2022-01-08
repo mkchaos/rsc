@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct Layout {
     pub offset: usize,
     pub size: usize,

@@ -6,6 +6,7 @@ use std::collections::HashMap;
 pub struct Program {
     pub memory: Vec<i32>,
     pub codes: Vec<Code>,
+    pub start_pc: usize,
 }
 
 impl Program {
@@ -13,33 +14,33 @@ impl Program {
         // Link
         let mut codes = Vec::new();
         macro_rules! link_address {
-            ($addr: ident, $idx:ident) => {
+            ($addr: ident) => {
                 match $addr {
                     CodeAddr::NameStart(id) => {
-                        let off = cxt.code_layout.get(id).unwrap().offset as isize - $idx as isize;
-                        CodeAddr::Offset(off)
+                        CodeAddr::Direct(cxt.code_layout.get(id).unwrap().offset as usize)
                     }
                     CodeAddr::NameEnd(id) => {
-                        let off = cxt.code_layout.get(id).unwrap().last() as isize - $idx as isize;
-                        CodeAddr::Offset(off)
+                        CodeAddr::Direct(cxt.code_layout.get(id).unwrap().last() as usize)
                     }
                     _ => $addr.clone(),
                 }
             };
         }
-        for (idx, c) in cxt.codes.iter().enumerate() {
-            println!("idx {:?}", idx);
+        for c in cxt.codes.iter() {
             let cc = match c {
-                Code::Call(addr) => Code::Call(link_address!(addr, idx)),
-                Code::Jump(addr) => Code::Jump(link_address!(addr, idx)),
-                Code::CondJump(addr) => Code::CondJump(link_address!(addr, idx)),
+                Code::Call(addr) => Code::Call(link_address!(addr)),
+                Code::Jump(addr) => Code::Jump(link_address!(addr)),
+                Code::CondJump(addr) => Code::CondJump(link_address!(addr)),
                 _ => c.clone(),
             };
             codes.push(cc);
         }
+
+        let pc = cxt.code_layout[&cxt.s_info.main_func_id].offset;
         Program {
             memory: cxt.memory,
             codes: codes,
+            start_pc: pc,
         }
     }
 }
@@ -72,6 +73,7 @@ impl Context {
     pub fn exit_func(&mut self) {
         self.exit(self.func_id);
         println!("Out {:?} {:?}", self.func_id, self.get_cur());
+        self.add_code(Code::Ret);
         self.func_id = 0;
     }
 
@@ -97,6 +99,7 @@ impl Context {
 
     fn get_var_addr(&self, id: u32) -> MemAddr {
         let global = self.s_info.vars[&id].is_global();
+        println!("Var addr {} {}",  self.s_info.vars[&id].scope_id, global);
         if global {
             MemAddr::Direct(self.s_info.mem_layout[id as usize].offset)
         } else {
