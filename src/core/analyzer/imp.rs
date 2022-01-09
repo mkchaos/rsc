@@ -1,7 +1,9 @@
 use super::context::Context;
 use super::Analyzer;
 use crate::core::types::nodes::*;
-use crate::core::types::{get_op_param_num, get_value_type, CalcItem, ErrKind, Type};
+use crate::core::types::{
+    get_op_param_num, get_type_size, get_value_type, CalcItem, ErrKind, Type,
+};
 
 impl Analyzer for FactorNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
@@ -111,7 +113,7 @@ impl Analyzer for ElsNd {
 
 impl Analyzer for WhileNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        let scope_id = cxt.enter_scope();
+        let scope_id = cxt.enter_loop_scope();
         self.set_id(scope_id);
         if Type::Int != self.expr.analyze(cxt)? {
             return Err(ErrKind::TypeErr);
@@ -124,19 +126,57 @@ impl Analyzer for WhileNd {
 
 impl Analyzer for BreakNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        Ok(Type::Void)
+        match cxt.get_loop_scope() {
+            Some(id) => {
+                self.set_id(id);
+                self.set_pop_off(cxt.get_off_by_id(id));
+                Ok(Type::Void)
+            }
+            None => Err(ErrKind::JumpNoLoop),
+        }
     }
 }
 
 impl Analyzer for ContinueNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        Ok(Type::Void)
+        match cxt.get_loop_scope() {
+            Some(id) => {
+                self.set_id(id);
+                self.set_pop_off(cxt.get_off_by_id(id));
+                Ok(Type::Void)
+            }
+            None => Err(ErrKind::JumpNoLoop),
+        }
     }
 }
 
 impl Analyzer for ReturnNd {
-    fn analyze(&self, _cxt: &mut Context) -> Result<Type, ErrKind> {
-        // No need infomation yet
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
+        let func_id = cxt.get_cur_func_id();
+        let func_ty = cxt.get_type_by_id(func_id)?;
+        match self.expr.as_ref() {
+            Some(n) => {
+                let ty = n.analyze(cxt)?;
+                match func_ty {
+                    Type::Func(vec) => {
+                        if ty != vec.last().unwrap().clone() {
+                            return Err(ErrKind::TypeErr);
+                        }
+                    }
+                    _ => panic!("Func type err"),
+                }
+                self.set_sz(get_type_size(ty));
+            }
+            None => {
+                match func_ty {
+                    Type::Func(vec) => {
+                        let ty = vec.last().unwrap().clone();
+                        self.set_sz(get_type_size(ty));
+                    }
+                    _ => panic!("Func type err"),
+                }
+            }
+        };
         Ok(Type::Void)
     }
 }

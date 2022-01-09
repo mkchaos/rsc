@@ -1,5 +1,5 @@
-mod imp;
 mod context;
+mod imp;
 
 use super::analyzer::{analyze, Analyzer};
 use crate::core::types::ErrKind;
@@ -22,8 +22,38 @@ mod tests {
     use crate::utils::load_code_from_file;
 
     #[test]
-    fn test_compile() {
-        let code = load_code_from_file("example/test_c_1.c");
+    fn test_compile_basic() {
+        let code = load_code_from_file("test_cfiles/vm/basic.c");
+        let prog = super::compile(&code);
+        if prog.is_err() {
+            println!("{:?}", prog.err());
+        } else {
+            let prog = prog.unwrap();
+            for c in prog.codes {
+                println!("{:?}", c);
+            }
+            println!("Big ok");
+        }
+    }
+
+    #[test]
+    fn test_compile_while() {
+        let code = load_code_from_file("test_cfiles/vm/while.c");
+        let prog = super::compile(&code);
+        if prog.is_err() {
+            println!("{:?}", prog.err());
+        } else {
+            let prog = prog.unwrap();
+            for c in prog.codes {
+                println!("{:?}", c);
+            }
+            println!("Big ok");
+        }
+    }
+
+    #[test]
+    fn test_compile_if() {
+        let code = load_code_from_file("test_cfiles/vm/if.c");
         let prog = super::compile(&code);
         if prog.is_err() {
             println!("{:?}", prog.err());

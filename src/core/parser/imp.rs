@@ -62,6 +62,9 @@ impl Parser for IfNd {
         let (seq, ex) = ExprNd::parse(seq)?;
         let (seq, _) = seq.eat(Token::RParen)?;
         let (seq, it) = ItemNd::parse(seq)?;
+        if it.is_declare() {
+            return None;
+        }
         if seq.get(0) == Some(Token::Else) {
             let (seq, els) = ElsNd::parse(seq)?;
             Some((seq, IfNd::new(ex, it, Some(els))))
@@ -78,6 +81,9 @@ impl Parser for ElsNd {
             Some((s, ElsNd::If(Box::new(n))))
         } else {
             let (seq, it) = ItemNd::parse(seq.clone())?;
+            if it.is_declare() {
+                return None;
+            }
             Some((seq, ElsNd::Item(it)))
         }
     }
@@ -90,6 +96,9 @@ impl Parser for WhileNd {
         let (seq, ex) = ExprNd::parse(seq)?;
         let (seq, _) = seq.eat(Token::RParen)?;
         let (seq, it) = ItemNd::parse(seq)?;
+        if it.is_declare() {
+            return None;
+        }
         Some((seq, WhileNd::new(ex, it)))
     }
 }
@@ -98,7 +107,7 @@ impl Parser for BreakNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
         let (seq, _) = seq.eat(Token::Break)?;
         let (seq, _) = seq.eat(Token::Semicolon)?;
-        Some((seq, BreakNd {}))
+        Some((seq, BreakNd::new()))
     }
 }
 
@@ -106,7 +115,7 @@ impl Parser for ContinueNd {
     fn parse(seq: Sequence) -> SeqPack<Self> {
         let (seq, _) = seq.eat(Token::Continue)?;
         let (seq, _) = seq.eat(Token::Semicolon)?;
-        Some((seq, ContinueNd {}))
+        Some((seq, ContinueNd::new()))
     }
 }
 
@@ -115,10 +124,10 @@ impl Parser for ReturnNd {
         let (seq, _) = seq.eat(Token::Return)?;
         if let Some((s, n)) = ExprNd::parse(seq.clone()) {
             let (seq, _) = s.eat(Token::Semicolon)?;
-            Some((seq, ReturnNd { expr: Some(n) }))
+            Some((seq, ReturnNd::new(Some(n))))
         } else {
             let (seq, _) = seq.eat(Token::Semicolon)?;
-            Some((seq, ReturnNd { expr: None }))
+            Some((seq, ReturnNd::new(None)))
         }
     }
 }

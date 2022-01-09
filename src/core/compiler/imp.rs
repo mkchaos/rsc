@@ -1,6 +1,6 @@
 use super::{Compiler, Context};
 use crate::core::types::nodes::*;
-use crate::core::types::{only_pop_code, CalcItem, Code, MemAddr, Type, Value};
+use crate::core::types::{CalcItem, Code, CodeAddr, Type, Value};
 
 impl Compiler for FactorNd {
     fn compile(&self, cxt: &mut Context) {
@@ -8,7 +8,7 @@ impl Compiler for FactorNd {
             FactorNd::Var(n) => n.compile(cxt),
             FactorNd::Value(v) => {
                 if let Value::Int(num) = v {
-                    cxt.add_code(Code::Push(MemAddr::Value(*num)));
+                    cxt.add_code(Code::PushValue(*num));
                 }
             }
             FactorNd::Func(n) => n.compile(cxt),
@@ -51,7 +51,7 @@ impl Compiler for DeclareNd {
                 e.compile(cxt);
             }
             None => {
-                cxt.add_code(Code::Push(MemAddr::Value(0)));
+                cxt.add_code(Code::PushValue(0));
             }
         };
     }
@@ -66,12 +66,12 @@ impl Compiler for StmtNd {
             StmtNd::Declare(n) => n.compile(cxt),
             StmtNd::Expr(n) => {
                 n.compile(cxt);
-                cxt.add_code(only_pop_code());
+                cxt.add_code(Code::Pop(1));
             }
             StmtNd::Print(n) => {
                 cxt.push(n.get_id());
                 cxt.add_code(Code::Print);
-                cxt.add_code(only_pop_code());
+                cxt.add_code(Code::Pop(1));
             }
             _ => {}
         }
@@ -79,27 +79,68 @@ impl Compiler for StmtNd {
 }
 
 impl Compiler for IfNd {
-    fn compile(&self, cxt: &mut Context) {}
+    fn compile(&self, cxt: &mut Context) {
+        cxt.enter(self.get_id());
+        self.expr.compile(cxt);
+        cxt.add_code(Code::CondJump(CodeAddr::NameEnd(self.get_id())));
+        self.item.compile(cxt);
+        cxt.exit(self.get_id());
+        if self.els.is_some() {
+            self.els.as_ref().unwrap().compile(cxt);
+        }
+    }
 }
 
 impl Compiler for ElsNd {
-    fn compile(&self, cxt: &mut Context) {}
+    fn compile(&self, cxt: &mut Context) {
+        match self {
+            ElsNd::If(n) => n.compile(cxt),
+            ElsNd::Item(n) => n.compile(cxt),
+        }
+    }
 }
 
 impl Compiler for WhileNd {
-    fn compile(&self, cxt: &mut Context) {}
+    fn compile(&self, cxt: &mut Context) {
+        cxt.enter(self.get_id());
+        self.expr.compile(cxt);
+        cxt.add_code(Code::CondJump(CodeAddr::NameEnd(self.get_id())));
+        self.item.compile(cxt);
+        cxt.add_code(Code::Jump(CodeAddr::NameStart(self.get_id())));
+        cxt.exit(self.get_id());
+    }
 }
 
 impl Compiler for BreakNd {
-    fn compile(&self, cxt: &mut Context) {}
+    fn compile(&self, cxt: &mut Context) {
+        cxt.add_code(Code::Pop(self.get_pop_off()));
+        cxt.add_code(Code::Jump(CodeAddr::NameEnd(self.get_id())));
+    }
 }
 
 impl Compiler for ContinueNd {
-    fn compile(&self, cxt: &mut Context) {}
+    fn compile(&self, cxt: &mut Context) {
+        cxt.add_code(Code::Pop(self.get_pop_off()));
+        cxt.add_code(Code::Jump(CodeAddr::NameStart(self.get_id())));
+    }
 }
 
 impl Compiler for ReturnNd {
-    fn compile(&self, cxt: &mut Context) {}
+    fn compile(&self, cxt: &mut Context) {
+        match self.expr.as_ref() {
+            Some(n) => {
+                n.compile(cxt);
+                cxt.add_code(Code::Ret(self.get_sz()));
+            }
+            None => {
+                let sz = self.get_sz();
+                for _ in 0..sz {
+                    cxt.add_code(Code::PushValue(0));
+                }
+                cxt.add_code(Code::Ret(0));
+            }
+        }
+    }
 }
 
 impl Compiler for ItemNd {
@@ -118,9 +159,13 @@ impl Compiler for ItemNd {
 
 impl Compiler for BlockNd {
     fn compile(&self, cxt: &mut Context) {
+        cxt.enter(self.get_id());
         for it in self.items.iter() {
             it.compile(cxt);
         }
+        let sz = cxt.get_scope_size(self.get_id());
+        cxt.add_code(Code::Pop(sz));
+        cxt.exit(self.get_id());
     }
 }
 

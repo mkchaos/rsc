@@ -17,4 +17,5 @@ int main()
     b;
     b+1;
     // 1+2+3;
+    return;
 }

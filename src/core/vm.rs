@@ -1,7 +1,5 @@
 use super::compiler::Program;
-use super::types::{
-    calc_op_1, calc_op_2, get_op_param_num, Code, CodeAddr, ErrKind, MemAddr, Value,
-};
+use super::types::{calc_op_1, calc_op_2, get_op_param_num, Code, CodeAddr, ErrKind, MemAddr};
 
 pub struct VM {
     pc: usize,
@@ -9,8 +7,8 @@ pub struct VM {
     pd: usize,
     codes: Vec<Code>,
     datas: Vec<i32>,
+    control_stack: Vec<usize>,
     stop: bool,
-    global_mem_size: usize,
 }
 
 #[allow(dead_code)]
@@ -27,8 +25,8 @@ impl VM {
             ps: mem_len,
             datas: vec![0; data_stack_size],
             codes: prog.codes,
+            control_stack: Vec::new(),
             stop: false,
-            global_mem_size: mem_len,
         };
         for (i, x) in prog.memory.iter().enumerate() {
             vm.datas[i] = *x;
@@ -36,37 +34,53 @@ impl VM {
         vm
     }
 
-    fn getv(&self, addr: MemAddr) -> i32 {
+    fn get_code_addr(&self, addr: CodeAddr) -> usize {
         match addr {
-            MemAddr::Direct(a) => self.datas[a],
-            MemAddr::Indirect(a) => self.datas[self.pd + a],
-            MemAddr::Value(a) => a,
+            CodeAddr::Direct(a) => a,
+            _ => panic!("name addr in vm!"),
         }
     }
 
-    fn setv(&mut self, addr: MemAddr, v: i32) {
+    fn geta(&self, addr: MemAddr) -> usize {
         match addr {
-            MemAddr::Direct(a) => self.datas[a] = v,
-            MemAddr::Indirect(a) => self.datas[self.pd + a] = v,
-            MemAddr::Value(_) => {}
+            MemAddr::Direct(a) => a,
+            MemAddr::Indirect(a) => self.pd + a,
         }
     }
 
-    pub fn execute_once(&mut self) -> Result<(), ErrKind> {
+    fn pushv(&mut self, x: i32) -> Result<(), ErrKind> {
+        if self.ps >= self.datas.len() {
+            Err(ErrKind::StackOverFlow)
+        } else {
+            self.datas[self.ps] = x;
+            self.ps += 1;
+            Ok(())
+        }
+    }
+
+    fn popv(&mut self) -> i32 {
+        self.ps -= 1;
+        self.datas[self.ps]
+    }
+
+    // ret output
+    pub fn execute_once(&mut self) -> Result<Option<i32>, ErrKind> {
         let code = self.codes[self.pc].clone();
         self.pc += 1;
         match code {
-            Code::Push(addr) => {
-                if self.ps >= self.datas.len() {
-                    return Err(ErrKind::StackOverFlow);
-                }
-                let v = self.getv(addr);
-                self.datas[self.ps] = v;
-                self.ps += 1;
+            Code::PushValue(x) => {
+                self.pushv(x)?;
             }
-            Code::Pop(addr) => {
-                self.ps -= 1;
-                self.setv(addr, self.datas[self.ps]);
+            Code::Push(addr) => {
+                let a = self.geta(addr);
+                self.pushv(self.datas[a])?;
+            }
+            Code::Pop(sz) => {
+                self.ps -= sz;
+            }
+            Code::PopMov(addr) => {
+                let a = self.geta(addr);
+                self.datas[a] = self.popv();
             }
             Code::Op(op) => match get_op_param_num(op) {
                 1 => {
@@ -81,55 +95,52 @@ impl VM {
                     panic!("No {} param num", get_op_param_num(op));
                 }
             },
-            Code::Call(off, num_params) => {
-                if self.ps + 2 >= self.datas.len() {
-                    return Err(ErrKind::StackOverFlow);
-                }
-                self.ps -= num_params;
-                for i in (0..num_params).rev() {
-                    self.datas[self.ps + i + 2] = self.datas[self.ps - i];
-                }
-                self.datas[self.ps] = self.pc as i32;
-                self.datas[self.ps + 1] = self.pd as i32;
-                self.pd = self.ps + 2;
-                self.ps += 2 + num_params;
-                match off {
-                    CodeAddr::Direct(off) => self.pc = off,
-                    _ => panic!("Call err"),
+            Code::Call(code_addr, num_params) => {
+                self.control_stack.push(self.pc);
+                self.control_stack.push(self.pd);
+                self.pd = self.ps - num_params;
+                self.pc = self.get_code_addr(code_addr);
+            }
+            Code::Jump(code_addr) => {
+                self.pc = self.get_code_addr(code_addr);
+            }
+            Code::CondJump(code_addr) => {
+                if self.popv() == 0 {
+                    self.pc = self.get_code_addr(code_addr);
                 }
             }
-            Code::Jump(_off) => {}
-            Code::CondJump(_off) => {}
             Code::Print => {
-                println!("Print: {}", self.datas[self.ps - 1]);
+                let v = self.datas[self.ps - 1];
+                println!("Print: {}", v);
+                return Ok(Some(v));
             }
-            Code::Ret(v) => {
+            Code::Ret(sz) => {
                 // ret main
-                if self.pd <= self.global_mem_size {
+                if self.control_stack.len() == 0 {
                     self.stop = true;
                 } else {
-                    self.ps = self.pd;
-                    self.pc = self.datas[self.ps - 2] as usize;
-                    self.pd = self.datas[self.ps - 1] as usize;
-                    self.ps -= 2;
-                    match v {
-                        Value::Int(v) => {
-                            self.datas[self.ps] = v;
-                            self.ps += 1;
-                        }
-                        _ => {}
+                    let nps = self.pd;
+                    self.pd = self.control_stack.pop().unwrap();
+                    self.pc = self.control_stack.pop().unwrap();
+                    self.ps -= sz;
+                    for i in 0..sz {
+                        self.datas[nps + i] = self.datas[self.ps + i];
                     }
+                    self.ps = nps + sz;
                 }
             }
         }
-        Ok(())
+        Ok(None)
     }
 
-    pub fn execute(&mut self) -> Result<(), ErrKind> {
+    pub fn execute(&mut self) -> Result<Vec<i32>, ErrKind> {
+        let mut outs = Vec::new();
         while !self.stop {
-            self.execute_once()?;
+            if let Some(x) = self.execute_once()? {
+                outs.push(x);
+            }
         }
-        Ok(())
+        Ok(outs)
     }
 }
 
@@ -140,24 +151,35 @@ mod tests {
     use crate::utils::load_code_from_file;
 
     #[test]
-    fn test_vm() {
-        let code = load_code_from_file("example/test_vm_1.c");
+    fn test_vm_basic() {
+        let code = load_code_from_file("test_cfiles/vm/basic.c");
         let prog = compile(&code);
-        if prog.is_err() {
-            println!("{:?}", prog.err());
-        } else {
-            let prog = prog.unwrap();
-            for c in prog.codes.iter() {
-                println!("{:?}", c);
-            }
-            let mut vm = VM::new(1000, prog);
-            match vm.execute() {
-                Err(e) => {
-                    println!("vm {:?}", e);
-                }
-                _ => {}
-            }
-            println!("Big ok");
-        }
+        assert!(prog.is_ok());
+        let mut vm = VM::new(1000, prog.unwrap());
+        let res = vm.execute();
+        assert!(res.is_ok());
+        assert_eq!(vec![0, 23], res.unwrap());
+    }
+
+    #[test]
+    fn test_vm_while() {
+        let code = load_code_from_file("test_cfiles/vm/while.c");
+        let prog = compile(&code);
+        assert!(prog.is_ok());
+        let mut vm = VM::new(1000, prog.unwrap());
+        let res = vm.execute();
+        assert!(res.is_ok());
+        assert_eq!(vec![10, 7, 4, 1], res.unwrap());
+    }
+
+    #[test]
+    fn test_vm_if() {
+        let code = load_code_from_file("test_cfiles/vm/if.c");
+        let prog = compile(&code);
+        assert!(prog.is_ok());
+        let mut vm = VM::new(1000, prog.unwrap());
+        let res = vm.execute();
+        assert!(res.is_ok());
+        assert_eq!(vec![10, 8, 6, 4, 2, 0], res.unwrap());
     }
 }

@@ -26,11 +26,10 @@ pub fn parse<T: Parser>(code: &str) -> Result<T, String> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use super::parse;
     use super::super::types::nodes::*;
+    use super::parse;
 
     #[test]
     fn test_parse_func_call() {

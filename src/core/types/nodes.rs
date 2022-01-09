@@ -139,7 +139,6 @@ pub struct IfNd {
     pub item: ItemNd,
     pub els: Option<ElsNd>,
     pub id: RefCell<u32>,
-
 }
 
 impl IfNd {
@@ -193,14 +192,87 @@ impl WhileNd {
 }
 
 #[derive(Debug, Clone)]
-pub struct BreakNd {}
+pub struct BreakNd {
+    pub id: RefCell<u32>,
+    pub pop_off: RefCell<usize>,
+}
+
+impl BreakNd {
+    pub fn new() -> Self {
+        BreakNd {
+            id: RefCell::new(0),
+            pop_off: RefCell::new(0),
+        }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        *self.id.borrow()
+    }
+
+    pub fn set_id(&self, id: u32) {
+        *self.id.borrow_mut() = id;
+    }
+
+    pub fn get_pop_off(&self) -> usize {
+        *self.pop_off.borrow()
+    }
+
+    pub fn set_pop_off(&self, pop_off: usize) {
+        *self.pop_off.borrow_mut() = pop_off;
+    }
+}
 
 #[derive(Debug, Clone)]
-pub struct ContinueNd {}
+pub struct ContinueNd {
+    pub id: RefCell<u32>,
+    pub pop_off: RefCell<usize>,
+}
+
+impl ContinueNd {
+    pub fn new() -> Self {
+        ContinueNd {
+            id: RefCell::new(0),
+            pop_off: RefCell::new(0),
+        }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        *self.id.borrow()
+    }
+
+    pub fn set_id(&self, id: u32) {
+        *self.id.borrow_mut() = id;
+    }
+    pub fn get_pop_off(&self) -> usize {
+        *self.pop_off.borrow()
+    }
+
+    pub fn set_pop_off(&self, pop_off: usize) {
+        *self.pop_off.borrow_mut() = pop_off;
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ReturnNd {
     pub expr: Option<ExprNd>,
+    pub sz: RefCell<usize>,
+}
+
+impl ReturnNd {
+    pub fn new(expr: Option<ExprNd>) -> Self {
+        ReturnNd {
+            expr: expr,
+            sz: RefCell::new(0),
+        }
+    }
+
+    pub fn get_sz(&self) -> usize {
+        *self.sz.borrow()
+    }
+
+    pub fn set_sz(&self, sz: usize) {
+        *self.sz.borrow_mut() = sz;
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -221,6 +293,16 @@ pub enum ItemNd {
     Return(ReturnNd),
     Continue(ContinueNd),
     Break(BreakNd),
+}
+
+impl ItemNd {
+    pub fn is_declare(&self) -> bool {
+        if let ItemNd::Stmt(StmtNd::Declare(_)) = self {
+            true
+        } else {
+            false
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

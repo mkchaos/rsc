@@ -1,4 +1,4 @@
-use super::token::{Token, Value, Type};
+use super::token::{Token, Type, Value};
 use std::rc::Rc;
 
 #[derive(Debug, Clone)]

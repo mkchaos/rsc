@@ -1,5 +1,5 @@
 use crate::core::analyzer::Semantic;
-use crate::core::types::{Code, CodeAddr, Layout, MemAddr, Type, Value};
+use crate::core::types::{Code, CodeAddr, Layout, MemAddr, Type};
 
 use std::collections::HashMap;
 
@@ -66,20 +66,19 @@ impl Context {
 
     pub fn enter_func(&mut self, id: u32) {
         self.func_id = id;
-        println!("In {:?} {:?}", self.func_id, self.get_cur());
         self.enter(id);
     }
 
     pub fn exit_func(&mut self) {
         self.exit(self.func_id);
-        println!("Out {:?} {:?}", self.func_id, self.get_cur());
         match self.s_info.funcs[&self.func_id].ty.clone() {
             Type::Func(v) => {
                 let ret_ty = v.last().unwrap();
                 if ret_ty.clone() == Type::Int {
-                    self.add_code(Code::Ret(Value::Int(0)));
+                    self.add_code(Code::PushValue(0));
+                    self.add_code(Code::Ret(1));
                 } else {
-                    self.add_code(Code::Ret(Value::Void));
+                    self.add_code(Code::Ret(0));
                 }
             }
             _ => panic!("not func type"),
@@ -97,6 +96,10 @@ impl Context {
         cur
     }
 
+    pub fn get_scope_size(&self, id: u32) -> usize {
+        self.s_info.mem_layout[id as usize].size
+    }
+
     pub fn exit(&mut self, id: u32) -> usize {
         let cur = self.get_cur();
         self.code_layout.get_mut(&id).unwrap().end(cur);
@@ -109,7 +112,6 @@ impl Context {
 
     fn get_var_addr(&self, id: u32) -> MemAddr {
         let global = self.s_info.vars[&id].is_global();
-        println!("Var addr {} {}", self.s_info.vars[&id].scope_id, global);
         if global {
             MemAddr::Direct(self.s_info.mem_layout[id as usize].offset)
         } else {
@@ -123,7 +125,7 @@ impl Context {
     }
 
     pub fn pop(&mut self, id: u32) {
-        let code = Code::Pop(self.get_var_addr(id));
+        let code = Code::PopMov(self.get_var_addr(id));
         self.codes.push(code);
     }
 

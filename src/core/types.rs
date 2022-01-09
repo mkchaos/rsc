@@ -1,17 +1,20 @@
 mod code;
+mod err;
 mod infos;
 mod layout;
+pub mod nodes;
 mod op;
 mod seq;
 mod token;
-mod err;
-pub mod nodes;
 
-pub use token::{Token, Type, Value, get_type_size, get_token_from_char, get_token_from_word, match_value_type, get_value_type, get_default_value};
-pub use seq::{SeqPack, Sequence};
-pub use op::{Op, CalcItem, get_calc_stack, calc_op_1, calc_op_2, get_op_param_num};
-pub use err::{ErrKind};
+pub use code::{Code, CodeAddr, MemAddr};
+pub use err::ErrKind;
+pub use infos::{FuncInfo, ScopeInfo, VarInfo};
 pub use layout::Layout;
-pub use infos::{FuncInfo, VarInfo, ScopeInfo};
-pub use code::{Code, MemAddr, CodeAddr, only_pop_code};
 pub use nodes::*;
+pub use op::{calc_op_1, calc_op_2, get_calc_stack, get_op_param_num, CalcItem, Op};
+pub use seq::{SeqPack, Sequence};
+pub use token::{
+    get_default_value, get_token_from_char, get_token_from_word, get_type_size, get_value_type,
+    match_value_type, Token, Type, Value,
+};

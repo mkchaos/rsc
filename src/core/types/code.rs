@@ -1,11 +1,9 @@
 use super::op::Op;
-use super::token::Value;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum MemAddr {
     Direct(usize),
     Indirect(usize),
-    Value(i32),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -18,15 +16,13 @@ pub enum CodeAddr {
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Code {
     Push(MemAddr),
-    Pop(MemAddr),
+    PushValue(i32),
+    Pop(usize),
+    PopMov(MemAddr),
     Op(Op),
     Call(CodeAddr, usize),
     Jump(CodeAddr),
     CondJump(CodeAddr),
     Print,
-    Ret(Value),
-}
-
-pub fn only_pop_code() -> Code {
-    Code::Pop(MemAddr::Value(0))
+    Ret(usize),
 }

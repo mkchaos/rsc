@@ -55,7 +55,28 @@ mod tests {
         assert_eq!(String::from("NoDeclare"), format!("{}", res.unwrap_err()));
         let code = load_code_from_file("test_cfiles/analyzer/var_2.c-");
         let res = analyze(&code);
-        assert_eq!(String::from("GlobalNeedConst"), format!("{}", res.unwrap_err()));
+        assert_eq!(
+            String::from("GlobalNeedConst"),
+            format!("{}", res.unwrap_err())
+        );
+    }
+
+    #[test]
+    fn test_cond() {
+        let code = load_code_from_file("test_cfiles/analyzer/cond_0.c");
+        assert!(analyze(&code).is_ok());
+        let code = load_code_from_file("test_cfiles/analyzer/cond_1.c-");
+        let res = analyze(&code);
+        assert_eq!(String::from("JumpNoLoop"), format!("{}", res.unwrap_err()));
+    }
+
+    #[test]
+    fn test_ret() {
+        let code = load_code_from_file("test_cfiles/analyzer/ret_0.c");
+        assert!(analyze(&code).is_ok());
+        let code = load_code_from_file("test_cfiles/analyzer/ret_1.c-");
+        let res = analyze(&code);
+        assert_eq!(String::from("TypeErr"), format!("{}", res.unwrap_err()));
     }
 
     #[test]

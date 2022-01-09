@@ -1,8 +1,8 @@
 mod core;
 mod utils;
 
+use crate::core::{compile, ErrKind, VM};
 use crate::utils::load_code_from_file;
-use crate::core::{compile, VM, ErrKind};
 
 pub fn compile_and_run(path: &str) -> Result<(), ErrKind> {
     let code = load_code_from_file(path);

@@ -1,4 +1,4 @@
-use super::types::{ErrKind, Token, get_token_from_char, get_token_from_word};
+use super::types::{get_token_from_char, get_token_from_word, ErrKind, Token};
 
 #[allow(dead_code)]
 pub fn lexer(code: &str) -> Result<Vec<Token>, ErrKind> {

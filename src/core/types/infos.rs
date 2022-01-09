@@ -27,11 +27,19 @@ pub struct VarInfo {
 
 impl VarInfo {
     pub fn is_global(&self) -> bool {
-        self.scope_id == 0
+        self.func_id == 0
     }
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ScopeInfo {
     pub id: u32,
+    pub is_loop: bool,
+    pub func_id: u32,
+}
+
+impl ScopeInfo {
+    pub fn is_global(&self) -> bool {
+        self.func_id == 0
+    }
 }

@@ -4,7 +4,8 @@ use strum_macros::Display;
 pub enum ErrKind {
     LexErr,
     ParseErr,
-    
+
+    JumpNoLoop,
     ReDeclare,
     NoDeclare,
     ReImpl,

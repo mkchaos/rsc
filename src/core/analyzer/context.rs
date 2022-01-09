@@ -1,4 +1,4 @@
-use crate::core::types::{ErrKind, FuncInfo, Layout, ScopeInfo, Type, VarInfo, get_type_size};
+use crate::core::types::{get_type_size, ErrKind, FuncInfo, Layout, ScopeInfo, Type, VarInfo};
 use std::collections::HashMap;
 
 pub struct Context {
@@ -26,7 +26,24 @@ impl Context {
         };
         let id = cxt.new_mem_layout(); // into program
         cxt.scope_stack.push(id);
+        cxt.scopes.insert(
+            id,
+            ScopeInfo {
+                id: id,
+                is_loop: false,
+                func_id: 0,
+            },
+        );
         cxt
+    }
+
+    pub fn get_loop_scope(&self) -> Option<u32> {
+        for id in self.scope_stack.iter().rev() {
+            if self.scopes[id].is_loop {
+                return Some(*id);
+            }
+        }
+        None
     }
 
     fn get_current_scope_id(&self) -> u32 {
@@ -39,11 +56,26 @@ impl Context {
         id
     }
 
-    pub fn enter_scope(&mut self) -> u32 {
+    fn _enter_scope(&mut self, is_loop: bool) -> u32 {
         let id = self.new_mem_layout();
-        self.scopes.insert(id, ScopeInfo { id: id });
+        self.scopes.insert(
+            id,
+            ScopeInfo {
+                id: id,
+                is_loop: is_loop,
+                func_id: self.cur_func_id,
+            },
+        );
         self.scope_stack.push(id);
         id
+    }
+
+    pub fn enter_scope(&mut self) -> u32 {
+        self._enter_scope(false)
+    }
+
+    pub fn enter_loop_scope(&mut self) -> u32 {
+        self._enter_scope(true)
     }
 
     pub fn exit_scope(&mut self) {
@@ -77,6 +109,7 @@ impl Context {
     }
 
     pub fn get_type_by_id(&self, id: u32) -> Result<Type, ErrKind> {
+        // funcs and var
         match self.funcs.get(&id) {
             Some(f) => Ok(f.ty.clone()),
             None => match self.vars.get(&id) {
@@ -84,6 +117,14 @@ impl Context {
                 None => Err(ErrKind::NoDeclare),
             },
         }
+    }
+
+    pub fn get_off_by_id(&self, id: u32) -> usize {
+        self.cur_offset - self.mem_layout[id as usize].offset
+    }
+
+    pub fn get_cur_func_id(&self) -> u32 {
+        self.cur_func_id
     }
 
     pub fn fetch(&self, name: &str) -> Result<u32, ErrKind> {
@@ -150,6 +191,7 @@ pub struct Semantic {
     pub mem_layout: Vec<Layout>,
     pub vars: HashMap<u32, VarInfo>,
     pub funcs: HashMap<u32, FuncInfo>,
+    pub scopes: HashMap<u32, ScopeInfo>,
     pub main_func_id: u32,
 }
 
@@ -177,6 +219,12 @@ impl Semantic {
                 mem_layout[v.id as usize].offset -= off;
             }
         }
+        for (_, v) in cxt.scopes.iter() {
+            if !v.is_global() {
+                let off = mem_layout[v.func_id as usize].offset;
+                mem_layout[v.id as usize].offset -= off;
+            }
+        }
         // for l in mem_layout.iter() {
         //     println!("layout: {:?}", l.clone());
         // }
@@ -184,6 +232,7 @@ impl Semantic {
             mem_layout: mem_layout,
             vars: cxt.vars,
             funcs: cxt.funcs,
+            scopes: cxt.scopes,
             main_func_id: main_id,
         })
     }
