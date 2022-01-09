@@ -90,7 +90,7 @@ impl Parser for WhileNd {
         let (seq, ex) = ExprNd::parse(seq)?;
         let (seq, _) = seq.eat(Token::RParen)?;
         let (seq, it) = ItemNd::parse(seq)?;
-        Some((seq, WhileNd { expr: ex, item: it }))
+        Some((seq, WhileNd::new(ex, it)))
     }
 }
 

@@ -138,6 +138,8 @@ pub struct IfNd {
     pub expr: ExprNd,
     pub item: ItemNd,
     pub els: Option<ElsNd>,
+    pub id: RefCell<u32>,
+
 }
 
 impl IfNd {
@@ -146,7 +148,16 @@ impl IfNd {
             expr: expr,
             item: item,
             els: els,
+            id: RefCell::new(0),
         }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        *self.id.borrow()
+    }
+
+    pub fn set_id(&self, id: u32) {
+        *self.id.borrow_mut() = id;
     }
 }
 
@@ -160,6 +171,25 @@ pub enum ElsNd {
 pub struct WhileNd {
     pub expr: ExprNd,
     pub item: ItemNd,
+    pub id: RefCell<u32>,
+}
+
+impl WhileNd {
+    pub fn new(expr: ExprNd, item: ItemNd) -> Self {
+        WhileNd {
+            expr: expr,
+            item: item,
+            id: RefCell::new(0),
+        }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        *self.id.borrow()
+    }
+
+    pub fn set_id(&self, id: u32) {
+        *self.id.borrow_mut() = id;
+    }
 }
 
 #[derive(Debug, Clone)]

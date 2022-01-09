@@ -78,12 +78,40 @@ impl Compiler for StmtNd {
     }
 }
 
+impl Compiler for IfNd {
+    fn compile(&self, cxt: &mut Context) {}
+}
+
+impl Compiler for ElsNd {
+    fn compile(&self, cxt: &mut Context) {}
+}
+
+impl Compiler for WhileNd {
+    fn compile(&self, cxt: &mut Context) {}
+}
+
+impl Compiler for BreakNd {
+    fn compile(&self, cxt: &mut Context) {}
+}
+
+impl Compiler for ContinueNd {
+    fn compile(&self, cxt: &mut Context) {}
+}
+
+impl Compiler for ReturnNd {
+    fn compile(&self, cxt: &mut Context) {}
+}
+
 impl Compiler for ItemNd {
     fn compile(&self, cxt: &mut Context) {
         match self {
             ItemNd::Block(n) => n.compile(cxt),
             ItemNd::Stmt(n) => n.compile(cxt),
-            _ => {}
+            ItemNd::If(n) => n.compile(cxt),
+            ItemNd::While(n) => n.compile(cxt),
+            ItemNd::Break(n) => n.compile(cxt),
+            ItemNd::Continue(n) => n.compile(cxt),
+            ItemNd::Return(n) => n.compile(cxt),
         }
     }
 }

@@ -86,37 +86,58 @@ impl Analyzer for StmtNd {
 
 impl Analyzer for IfNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        Err(ErrKind::ReDeclare)
+        let scope_id = cxt.enter_scope();
+        self.set_id(scope_id);
+        if Type::Int != self.expr.analyze(cxt)? {
+            return Err(ErrKind::TypeErr);
+        }
+        self.item.analyze(cxt)?;
+        cxt.exit_scope();
+        if self.els.is_some() {
+            self.els.as_ref().unwrap().analyze(cxt)?;
+        }
+        Ok(Type::Void)
     }
 }
 
 impl Analyzer for ElsNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        Err(ErrKind::ReDeclare)
+        match self {
+            ElsNd::If(n) => n.analyze(cxt),
+            ElsNd::Item(n) => n.analyze(cxt),
+        }
     }
 }
 
 impl Analyzer for WhileNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        Err(ErrKind::ReDeclare)
+        let scope_id = cxt.enter_scope();
+        self.set_id(scope_id);
+        if Type::Int != self.expr.analyze(cxt)? {
+            return Err(ErrKind::TypeErr);
+        }
+        self.item.analyze(cxt)?;
+        cxt.exit_scope();
+        Ok(Type::Void)
     }
 }
 
 impl Analyzer for BreakNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        Err(ErrKind::ReDeclare)
+        Ok(Type::Void)
     }
 }
 
 impl Analyzer for ContinueNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        Err(ErrKind::ReDeclare)
+        Ok(Type::Void)
     }
 }
 
 impl Analyzer for ReturnNd {
-    fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        Err(ErrKind::ReDeclare)
+    fn analyze(&self, _cxt: &mut Context) -> Result<Type, ErrKind> {
+        // No need infomation yet
+        Ok(Type::Void)
     }
 }
 
@@ -130,14 +151,14 @@ impl Analyzer for ItemNd {
             ItemNd::Break(n) => n.analyze(cxt),
             ItemNd::Continue(n) => n.analyze(cxt),
             ItemNd::Return(n) => n.analyze(cxt),
-            _ => Ok(Type::Void)
         }
     }
 }
 
 impl Analyzer for BlockNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
-        cxt.enter_scope();
+        let scope_id = cxt.enter_scope();
+        self.set_id(scope_id);
         for item in self.items.iter() {
             item.analyze(cxt)?;
         }
