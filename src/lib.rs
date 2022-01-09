@@ -19,4 +19,11 @@ mod tests {
         let result = 2 + 2;
         assert_eq!(result, 4);
     }
+
+    #[test]
+    #[should_panic(expected = "xxx")]
+    fn it_panics() {
+        // let result = 2 + 2;
+        assert_eq!(1, 2, "xxx");
+    }
 }

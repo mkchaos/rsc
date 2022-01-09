@@ -110,4 +110,11 @@ mod tests {
         let parse_res = parse::<IfNd>(code);
         parse_res.unwrap();
     }
+
+    #[test]
+    fn test_parse_multiple() {
+        let code = "if(1)if(1){}else;else while(1);";
+        let parse_res = parse::<IfNd>(code);
+        parse_res.unwrap();
+    }
 }

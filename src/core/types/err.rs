@@ -1,4 +1,6 @@
-#[derive(Debug, PartialEq, Clone)]
+use strum_macros::Display;
+
+#[derive(Debug, PartialEq, Clone, Display)]
 pub enum ErrKind {
     LexErr,
     ParseErr,
@@ -9,7 +11,6 @@ pub enum ErrKind {
     FuncNoImpl,
     NoMainFunc,
     TypeErr,
-    FormatErr,
     GlobalNeedConst,
 
     StackOverFlow,

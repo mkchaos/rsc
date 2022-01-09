@@ -186,6 +186,8 @@ pub enum StmtNd {
 pub enum ItemNd {
     Stmt(StmtNd),
     Block(BlockNd),
+    If(Box<IfNd>),
+    While(Box<WhileNd>),
     Return(ReturnNd),
     Continue(ContinueNd),
     Break(BreakNd),

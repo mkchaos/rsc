@@ -145,6 +145,7 @@ impl Context {
     }
 }
 
+#[derive(Debug)]
 pub struct Semantic {
     pub mem_layout: Vec<Layout>,
     pub vars: HashMap<u32, VarInfo>,
@@ -176,9 +177,9 @@ impl Semantic {
                 mem_layout[v.id as usize].offset -= off;
             }
         }
-        for l in mem_layout.iter() {
-            println!("layout: {:?}", l.clone());
-        }
+        // for l in mem_layout.iter() {
+        //     println!("layout: {:?}", l.clone());
+        // }
         Ok(Semantic {
             mem_layout: mem_layout,
             vars: cxt.vars,

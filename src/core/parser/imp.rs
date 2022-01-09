@@ -154,6 +154,12 @@ impl Parser for ItemNd {
         if let Some((seq, n)) = StmtNd::parse(seq.clone()) {
             return Some((seq, ItemNd::Stmt(n)));
         }
+        if let Some((seq, n)) = IfNd::parse(seq.clone()) {
+            return Some((seq, ItemNd::If(Box::new(n))));
+        }
+        if let Some((seq, n)) = WhileNd::parse(seq.clone()) {
+            return Some((seq, ItemNd::While(Box::new(n))));
+        }
         if let Some((seq, n)) = ReturnNd::parse(seq.clone()) {
             return Some((seq, ItemNd::Return(n)));
         }

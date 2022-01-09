@@ -84,11 +84,52 @@ impl Analyzer for StmtNd {
     }
 }
 
+impl Analyzer for IfNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
+        Err(ErrKind::ReDeclare)
+    }
+}
+
+impl Analyzer for ElsNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
+        Err(ErrKind::ReDeclare)
+    }
+}
+
+impl Analyzer for WhileNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
+        Err(ErrKind::ReDeclare)
+    }
+}
+
+impl Analyzer for BreakNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
+        Err(ErrKind::ReDeclare)
+    }
+}
+
+impl Analyzer for ContinueNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
+        Err(ErrKind::ReDeclare)
+    }
+}
+
+impl Analyzer for ReturnNd {
+    fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
+        Err(ErrKind::ReDeclare)
+    }
+}
+
 impl Analyzer for ItemNd {
     fn analyze(&self, cxt: &mut Context) -> Result<Type, ErrKind> {
         match self {
             ItemNd::Block(n) => n.analyze(cxt),
             ItemNd::Stmt(n) => n.analyze(cxt),
+            ItemNd::If(n) => n.analyze(cxt),
+            ItemNd::While(n) => n.analyze(cxt),
+            ItemNd::Break(n) => n.analyze(cxt),
+            ItemNd::Continue(n) => n.analyze(cxt),
+            ItemNd::Return(n) => n.analyze(cxt),
             _ => Ok(Type::Void)
         }
     }
@@ -118,7 +159,7 @@ impl Analyzer for FuncNd {
             cxt.enter_scope();
             for (t, v) in self.params.iter() {
                 if v.is_none() {
-                    return Err(ErrKind::FormatErr);
+                    panic!("not parse well");
                 }
                 let v = v.as_ref().unwrap();
                 let id = cxt.declare_var(&v.name, t)?;
