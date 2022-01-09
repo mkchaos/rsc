@@ -167,15 +167,13 @@ impl Analyzer for ReturnNd {
                 }
                 self.set_sz(get_type_size(ty));
             }
-            None => {
-                match func_ty {
-                    Type::Func(vec) => {
-                        let ty = vec.last().unwrap().clone();
-                        self.set_sz(get_type_size(ty));
-                    }
-                    _ => panic!("Func type err"),
+            None => match func_ty {
+                Type::Func(vec) => {
+                    let ty = vec.last().unwrap().clone();
+                    self.set_sz(get_type_size(ty));
                 }
-            }
+                _ => panic!("Func type err"),
+            },
         };
         Ok(Type::Void)
     }
