@@ -14,7 +14,7 @@ fn preprocess_code_line(code: String) -> String {
     code
 }
 
-fn preprocess_code(code: String) -> String {
+pub fn preprocess_code(code: String) -> String {
     let mut vec = Vec::new();
     for s in code.split('\n') {
         vec.push(preprocess_code_line(s.to_owned()));
